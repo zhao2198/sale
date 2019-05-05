@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.OrganizationEnergyContrastRepository">
+
+	<select id="queryList" resultType="com.huaxing.bean.OrganizationEnergyContrast">
+			SELECT 
+			  a.id,
+			  a.name,
+			  SUM(c.sharp_cost) sharpCost,
+			  SUM(c.peak_cost) peakCost,
+			  SUM(c.flat_cost) flatCost,
+			  SUM(c.valley_cost) valleyCost,
+			  SUM(c.total_electric_quantity) totalElectricQuantity,
+			  SUM(c.total_cost) totalCost
+			FROM
+			  ngt_equipment_type a 
+			  INNER JOIN ngt_equipment b ON b.${equipmentTypeAttribute} = a.id  AND b.type ='1'
+			  INNER JOIN ngt_power_cost c ON c.equipment_id=b.id
+			  WHERE a.company_id=#{companyId}
+			  and c.create_date BETWEEN  #{startDate} and #{endDate}
+			  AND a.tid IN 
+				<foreach item="id" collection="equipmentTypeId" open="(" separator="," close=")">
+					#{id}
+				</foreach>
+			  GROUP BY a.id
+	</select>
+	<select id="queryListByOrg" resultType="com.huaxing.bean.OrganizationEnergyContrast">
+			SELECT 
+			  a.id,
+			  a.name,
+			  SUM(c.sharp_cost) sharpCost,
+			  SUM(c.peak_cost) peakCost,
+			  SUM(c.flat_cost) flatCost,
+			  SUM(c.valley_cost) valleyCost,
+			  SUM(c.total_electric_quantity) totalElectricQuantity,
+			  SUM(c.total_cost) totalCost
+			FROM
+			 sys_office a 
+			  INNER JOIN ngt_equipment b 
+			    ON b.organization = a.id AND b.`type` ='1'
+			  INNER JOIN ngt_power_cost c 
+			    ON c.equipment_id = b.id 
+			  WHERE a.company_id=#{companyId}
+			   and c.create_date BETWEEN  #{startDate} and #{endDate}
+			  GROUP BY a.id
+	</select>
+	<select id="queryAvgLoad"  resultType="com.huaxing.bean.OrganizationEnergyContrast">
+ 
+			SELECT 
+			  a.`equipment_id`,
+			  AVG(a.sum_active_power) AS avgLoad 
+			FROM
+			  `ngt_coll_device_data` a 
+			WHERE a.company_id = #{companyId}
+			  AND a.acquisition_time BETWEEN  #{startDate} and #{endDate}
+			GROUP BY a.`equipment_id` 
+	</select>
+
+	
+</mapper>

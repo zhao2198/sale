@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TotalViewRepository">
+	<!-- 查询数据表中的最新一条数据 ，取其中的功率因数和变压器视在功率总  王晓超 2018年8月3日11:01:49 -->
+	<select id="getElectricityParameterInfo" resultType="com.huaxing.bean.ElectricityParameter">
+		SELECT
+			*
+		FROM
+			ngt_coll_device_data
+		WHERE
+			equipment_id = #{equipmentId}
+		AND data_type = #{dataType}
+		AND company_id = #{companyId}
+		ORDER BY
+			acquisition_time DESC
+		LIMIT 1
+	</select>
+	<!-- 统计电量  王晓超 2018年8月4日14:26:06 -->
+	<select id="getElectricQuantity" resultType="java.math.BigDecimal">
+		SELECT
+			sum(total_electric_quantity) AS 'total_electric_quantity'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+	</select>
+	<!--统计日月年电费  王晓超 2018年8月4日15:09:25  -->
+	<select id="getPowerCost" resultType="java.math.BigDecimal">
+		SELECT
+			sum(total_cost) AS 'total_cost'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+	</select>
+	<!-- 统计日月年基本电费   王晓超 2018年8月4日15:23:46 -->
+	<select id="getBasicCost" resultType="java.math.BigDecimal">
+		SELECT
+			sum(cost) AS 'total_basic_cost'
+		FROM
+			ngt_basic_electric_cost
+		WHERE
+		company_id = #{companyId}
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+	</select>
+	<!-- 统计日月年力调电费  王晓超 2018年8月4日15:24:31 -->
+	<select id="getForceCost" resultType="java.math.BigDecimal">
+		SELECT
+			sum(force_cost) AS 'total_force_cost'
+		FROM
+			ngt_force_electric_cost
+		WHERE
+		company_id = #{companyId}
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+	</select>
+	
+</mapper>

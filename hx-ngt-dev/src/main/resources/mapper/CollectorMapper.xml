@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.CollectorRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.Collector" id="collectorMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="collectorModel" column="collector_model"/>
+        <result property="startTime" column="start_time"/>
+        <result property="buyTime" column="buy_time"/>
+        <result property="building" column="building"/>
+        <result property="organization" column="organization"/>
+        <result property="distributionRoom" column="distribution_room"/>
+        <result property="category" column="category"/>
+        <result property="picture" column="picture"/>
+        <result property="qrcode" column="qrCode"/>
+        <result property="collState" column="coll_state"/>
+        <result property="useType" column="use_type"/>
+        <result property="version" column="version"/>
+        <result property="provinceCode" column="province_code"/>
+        <result property="cityCode" column="city_code"/>
+        <result property="areaCode" column="area_code"/>
+        <result property="projectCode" column="project_code"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+
+	<select id="get" resultType="com.huaxing.bean.Collector">
+			select 
+				 a.*,
+				 building.name AS "buildingName",
+				 organization.name AS "organizationName",
+			 	 distributionRoom.name AS "distributionRoomName",
+				 category.name AS "categoryName" ,
+				 collectorModel.name as "collectorModelName"
+			 from ngt_collector a
+			LEFT JOIN ngt_collector_model collectorModel ON collectorModel.id = a.collector_model
+			LEFT JOIN ngt_equipment_type building ON building.id = a.building
+			LEFT JOIN sys_office organization ON organization.id = a.organization
+			LEFT JOIN ngt_equipment_type distributionRoom ON distributionRoom.id = a.distribution_room
+			LEFT JOIN ngt_equipment_type category ON category.id = a.category
+			where
+			a.del_flag='0'
+			and a.id = #{id}
+      
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.Collector">
+		select
+			 a.*,
+			 updateBy.name AS "updateByName" ,
+			 building.name AS "buildingName",
+			 organization.name AS "organizationName",
+			 collectorModel.name as "collectorModelName"
+		from ngt_collector a
+    	LEFT JOIN ngt_collector_model collectorModel ON collectorModel.id = a.collector_model
+		LEFT JOIN ngt_equipment_type building ON building.id = a.building
+		LEFT JOIN sys_office organization ON organization.id = a.organization
+		LEFT JOIN ngt_equipment_type distributionRoom ON distributionRoom.id = a.distribution_room
+		LEFT JOIN ngt_equipment_type category ON category.id = a.category
+		LEFT JOIN sys_user updateBy ON updateBy.id = a.update_by
+      <where>
+      	a.del_flag='0'
+      	and a.company_id=#{companyId}
+     	    <if test="code != null and code != ''">
+				AND a.code LIKE concat('%',#{code},'%')
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					concat('%',#{name},'%')
+			</if>
+			<if test="collectorModel != null and collectorModel != ''">
+				AND a.model LIKE 
+					concat('%',#{collectorModel},'%')
+			</if>
+		
+			<if test="beginBeginruntime != null and endBeginruntime != null and beginBeginruntime != '' and endBeginruntime != ''">
+				AND DATE_FORMAT(a.beginruntime, '%Y-%m-%d')  BETWEEN DATE_FORMAT( #{beginBeginruntime}, '%Y-%m-%d')  AND DATE_FORMAT(#{endBeginruntime}, '%Y-%m-%d')
+			</if>
+			<if test="building != null and building != ''">
+				AND a.building LIKE concat('%',#{building},'%')
+			</if>
+			<if test="organization != null and organization != ''">
+				AND a.organization LIKE concat('%',#{organization},'%')
+			</if>
+			<if test="distributionRoom != null and distributionRoom != ''">
+				AND a.distribution_room LIKE concat('%',#{distributionRoom},'%')
+			</if>
+			<if test="category != null and category != ''">
+				AND a.category LIKE concat('%',#{category},'%')
+			</if>
+			<if test="collState != null and collState != ''">
+				AND a.collState = #{collState}
+			</if>
+      </where>
+		
+	</select>
+	
+	<insert id="save" parameterType="com.huaxing.bean.Collector">
+		insert into ngt_collector
+		(
+			`id`, 
+			`code`, 
+			`name`, 
+			`collector_model`, 
+			`start_time`, 
+			`buy_time`, 
+			`building`, 
+			`organization`, 
+			`distribution_room`, 
+			`category`, 
+			`picture`, 
+			`qrCode`, 
+			`coll_state`, 
+			`use_type`, 
+			`version`, 
+			`province_code`, 
+			`city_code`, 
+			`area_code`, 
+			`project_code`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{name}, 
+			#{collectorModel}, 
+			#{startTime}, 
+			#{buyTime}, 
+			#{building}, 
+			#{organization}, 
+			#{distributionRoom}, 
+			#{category}, 
+			#{picture}, 
+			#{qrcode}, 
+			#{collState}, 
+			#{useType}, 
+			#{version}, 
+			#{provinceCode}, 
+			#{cityCode}, 
+			#{areaCode}, 
+			#{projectCode}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.Collector">
+		update ngt_collector 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="collectorModel != null">`collector_model` = #{collectorModel}, </if>
+			<if test="startTime != null">`start_time` = #{startTime}, </if>
+			<if test="buyTime != null">`buy_time` = #{buyTime}, </if>
+			<if test="building != null">`building` = #{building}, </if>
+			<if test="organization != null">`organization` = #{organization}, </if>
+			<if test="distributionRoom != null">`distribution_room` = #{distributionRoom}, </if>
+			<if test="category != null">`category` = #{category}, </if>
+			<if test="picture != null">`picture` = #{picture}, </if>
+			<if test="qrcode != null">`qrCode` = #{qrcode}, </if>
+			<if test="collState != null">`coll_state` = #{collState}, </if>
+			<if test="useType != null">`use_type` = #{useType}, </if>
+			<if test="version != null">`version` = #{version}, </if>
+			<if test="provinceCode != null">`province_code` = #{provinceCode}, </if>
+			<if test="cityCode != null">`city_code` = #{cityCode}, </if>
+			<if test="areaCode != null">`area_code` = #{areaCode}, </if>
+			<if test="projectCode != null">`project_code` = #{projectCode}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag} </if>
+			
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="deleteBatchByLogic">
+		update ngt_collector set del_flag = '1' where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</update>
+	
+	<select id="isExists" resultType="int">
+		select count(*)
+		 from 
+		 ngt_collector a
+		 <where>
+		 	a.del_flag ='0'
+			and a.company_id =#{companyId}
+			and a.code=#{code}
+			<if test="id != null and id !=''">
+			and a.id !=#{id}
+			</if>
+		 </where>
+	</select>
+	
+	
+	<delete id="delete">
+		delete from ngt_collector where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatchById">
+		DELETE 
+		  a,b,c 
+		  FROM ngt_collector_configure a 
+		  LEFT JOIN ngt_acquisitioncard_channel b 
+		    ON b.collector_configure = a.id 
+		  LEFT JOIN ngt_equipmentparam_config c 
+		    ON c.acquisitioncard_channel = b.id 
+		WHERE a.collector in
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<select id="getProjectCodeById" resultType="string">
+	
+		select project_code from ngt_collector where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</select>
+</mapper>

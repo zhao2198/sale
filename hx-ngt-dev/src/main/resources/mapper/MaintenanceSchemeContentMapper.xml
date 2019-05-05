@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MaintenanceSchemeContentRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MaintenanceSchemeContent" id="maintenanceSchemeContentMap">
+        <result property="id" column="id"/>
+        <result property="equipmentId" column="equipment_id"/>
+        <result property="equipmentName" column="equipment_name"/>
+        <result property="checkPoint" column="check_point"/>
+        <result property="checkItem" column="check_item"/>
+        <result property="keyPoint" column="key_point"/>
+        <result property="checkStandard" column="check_standard"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.MaintenanceSchemeContent">
+		select * from ngt_periodic_maintenance_content where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.MaintenanceSchemeContent">
+		select * from ngt_periodic_maintenance_content
+       
+	</select>
+	
+ 
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MaintenanceSchemeContent">
+		insert into ngt_periodic_maintenance_content
+		(
+			`id`, 
+			`periodic_maintenance_id`, 
+			`sort`, 
+			`equipment_id`, 
+			`equipment_name`, 
+			`check_point`, 
+			`check_item`, 
+			`key_point`, 
+			`check_standard`, 
+			`pid`
+		)
+		values
+		(
+			#{id}, 
+			#{periodicMaintenanceId}, 
+			#{sort}, 
+			#{equipmentId}, 
+			#{equipmentName}, 
+			#{checkPoint}, 
+			#{checkItem}, 
+			#{keyPoint}, 
+			#{checkStandard}, 
+			#{pid}
+		)
+	</insert>
+	<insert id="saveContent" parameterType="com.huaxing.bean.MaintenanceScheme">
+		insert into ngt_periodic_maintenance_content
+		(
+			`id`, 
+			`periodic_maintenance_id`, 
+			`sort`, 
+			`equipment_id`, 
+			`equipment_name`, 
+			`check_point`, 
+			`check_item`, 
+			`key_point`, 
+			`check_standard`
+		)
+		values
+		<foreach collection="contentList" item="content" separator=",">
+		(
+			#{content.id}, 
+			#{id}, 
+			#{content.sort}, 
+			#{content.equipmentId}, 
+			#{content.equipmentName}, 
+			#{content.checkPoint}, 
+			#{content.checkItem}, 
+			#{content.keyPoint}, 
+			#{content.checkStandard}
+		)
+		</foreach>
+	</insert>
+	
+	<insert id="saveBatch">
+		insert into ngt_periodic_maintenance_content
+		(
+			`id`, 
+			`periodic_maintenance_id`, 
+			`sort`, 
+			`equipment_id`, 
+			`equipment_name`, 
+			`check_point`, 
+			`check_item`, 
+			`key_point`, 
+			`check_standard`, 
+			`pid`
+		)
+		values
+		<foreach collection="list" separator="," item="item">
+		(
+			#{item.id}, 
+			#{item.periodicMaintenanceId}, 
+			#{item.sort}, 
+			#{item.equipmentId}, 
+			#{item.equipmentName}, 
+			#{item.checkPoint}, 
+			#{item.checkItem}, 
+			#{item.keyPoint}, 
+			#{item.checkStandard}, 
+			#{item.pid}
+		)
+		</foreach>
+		
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MaintenanceSchemeContent">
+		update ngt_periodic_maintenance_content 
+		<set>
+			<if test="periodicMaintenanceId != null">`periodic_maintenance_id` = #{periodicMaintenanceId}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId}, </if>
+			<if test="equipmentName != null">`equipment_name` = #{equipmentName}, </if>
+			<if test="checkPoint != null">`check_point` = #{checkPoint}, </if>
+			<if test="checkItem != null">`check_item` = #{checkItem}, </if>
+			<if test="keyPoint != null">`key_point` = #{keyPoint}, </if>
+			<if test="checkStandard != null">`check_standard` = #{checkStandard}, </if>
+			<if test="pid != null">`pid` = #{pid}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteByMainId">
+		delete from ngt_periodic_maintenance_content where periodic_maintenance_id = #{value}
+	</delete>
+	
+	<delete id="delete">
+		delete from ngt_periodic_maintenance_content where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_periodic_maintenance_content where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.NgtRoleRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.NgtRole" id="ngtRoleMap">
+        <result property="id" column="id"/>
+        <result property="officeIdNotuse" column="office_id_notUse"/>
+        <result property="name" column="name"/>
+        <result property="enname" column="enname"/>
+        <result property="roleType" column="role_type"/>
+        <result property="dataScope" column="data_scope"/>
+        <result property="isSys" column="is_sys"/>
+        <result property="useable" column="useable"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="commonFlag" column="common_flag"/>
+        <result property="datasource" column="datasource"/>
+        <result property="companyId" column="company_id"/>
+        <result property="sysType" column="sys_type"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.NgtRole">
+		select * from sys_role where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.NgtRole">
+		select * from sys_role role
+      	where role.`del_flag` = '0' 
+      	and role.sys_type=1
+		and role.company_id = #{companyId}
+		
+		<if test="name != null"> and role.name like concat('%', #{name}, '%')  </if>
+		ORDER BY role.`create_date`
+	</select>
+	
+	<select id="queryListByUserId" resultType="com.huaxing.bean.NgtRole">
+		SELECT role.* FROM sys_role role INNER JOIN sys_user_role ur 
+		ON role.id = ur.`role_id` 
+		WHERE ur.`user_id` = #{userId}
+	</select>
+	
+	<!-- 判断用户名是否重复-->
+	<select id="isExists" resultType="int"  parameterType="com.huaxing.bean.NgtRole">
+	      select count(*) from sys_role where (name=#{name} or enname=#{enname})
+	      
+	      <if test="id!=null and id!='' ">
+	         and  id != #{id}
+	      </if>
+	</select>
+	
+	<!-- 判断用户名是否重复-->
+	<select id="isExistUser" resultType="int"  parameterType="string">
+	      select count(*) from sys_user_role ur where ur.role_id = #{roleId}
+	</select>
+ 	
+	<insert id="save" parameterType="com.huaxing.bean.NgtRole">
+		insert into sys_role
+		(
+			`id`, 
+			`office_id_notUse`, 
+			`name`, 
+			`enname`, 
+			`role_type`, 
+			`data_scope`, 
+			`is_sys`, 
+			`useable`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`common_flag`, 
+			`datasource`, 
+			`company_id`, 
+			`sys_type`
+		)
+		values
+		(
+			#{id}, 
+			#{officeIdNotuse}, 
+			#{name}, 
+			#{enname}, 
+			#{roleType}, 
+			#{dataScope}, 
+			#{isSys}, 
+			#{useable}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{commonFlag}, 
+			#{datasource}, 
+			#{companyId}, 
+			#{sysType}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.NgtRole">
+		update sys_role 
+		<set>
+			<if test="officeIdNotuse != null">`office_id_notUse` = #{officeIdNotuse}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="enname != null">`enname` = #{enname}, </if>
+			<if test="roleType != null">`role_type` = #{roleType}, </if>
+			<if test="dataScope != null">`data_scope` = #{dataScope}, </if>
+			<if test="isSys != null">`is_sys` = #{isSys}, </if>
+			<if test="useable != null">`useable` = #{useable}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="commonFlag != null">`common_flag` = #{commonFlag}, </if>
+			<if test="datasource != null">`datasource` = #{datasource}, </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from sys_role where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from sys_role where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteUserRole">
+		DELETE ur FROM sys_role role INNER JOIN sys_user_role ur ON role.id = ur.role_id 
+		WHERE ur.user_id = #{userId}
+	</delete>
+	
+	<!-- 角色分配用户 -->
+	<insert id="saveRoleUser" parameterType="map">
+		insert into sys_user_role(role_id, user_id) values 
+		<foreach collection="list" index="index" item="userId"  separator=",">
+            (#{roleId},#{userId})
+        </foreach>
+	</insert>
+	
+	<!-- 用户分配角色-->
+	<insert id="saveUserRole" parameterType="map">
+		insert into sys_user_role(user_id, role_id) values 
+		<foreach collection="list" index="index" item="roleId"  separator=",">
+            (#{userId},#{roleId})
+        </foreach>
+	</insert>
+
+</mapper>

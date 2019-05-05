@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.PatrolSchemeRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.PatrolScheme" id="patrolSchemeMap">
+        <result property="id" column="id"/>
+        <result property="companyId" column="company_id"/>
+        <result property="code" column="code"/>
+        <result property="type" column="type"/>
+        <result property="period" column="period"/>
+        <result property="startDate" column="start_date"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="terminationCondition" column="termination_condition"/>
+        <result property="terminationParameter" column="termination_parameter"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="state" column="state"/>
+        <result property="enableFlag" column="enable_flag"/>
+        <result property="executionCount" column="execution_count"/>
+        <result property="taskId" column="task_id"/>
+    </resultMap>
+    
+     <resultMap type="com.huaxing.bean.PatrolScheme" id="patrolDetailSchemeMap" extends="patrolSchemeMap">
+     	 <result property="handlerName" column="handler_name"/>
+     </resultMap>
+
+
+	<resultMap type="com.huaxing.bean.PatrolScheme" id="extendPatrolSchemeMap" extends="patrolDetailSchemeMap">
+
+		<collection property="contentList" ofType="com.huaxing.bean.PatrolSchemeContent">
+			<result property="id" column="content_id" />
+			<result property="sort" column="sort" />
+			<result property="pid" column="pid" />
+			<result property="locationId" column="location_id" />
+			<result property="locationName" column="location_name" />
+			<result property="time" column="time" />
+			<result property="equipmentId" column="equipment_id" />
+		</collection>
+
+	</resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.PatrolScheme">
+		select * from ngt_patrol_scheme where id = #{value}
+	</select>
+
+	<select id="queryList" resultMap="patrolDetailSchemeMap">
+		
+		SELECT scheme.*,u.`name` as handler_name
+ 		FROM `ngt_patrol_scheme` scheme 
+		LEFT JOIN sys_user u ON scheme.`handler_id` = u.`id` WHERE scheme.`del_flag` = '0'
+      
+      and scheme.company_id like concat(#{companyId}, '%')
+		<if test="code != null and code !=''">and scheme.code like concat('%', #{code}, '%') </if>
+		<if test="type!=null and type!=''">and scheme.type=#{state} </if>
+		<if test="state!=null and state!=''">and scheme.state=#{state} </if>
+		<if test="startDate != null"><![CDATA[ AND pm.start_date >= #{startDate} ]]></if>
+			<if test="endDate != null"><![CDATA[ AND pm.start_date <= #{endDate} ]]></if>
+			order by scheme.create_date desc
+	</select>
+	
+	<select id="getDetailById" resultMap="extendPatrolSchemeMap">
+		SELECT 
+		  scheme.*,
+		  content.`id` AS content_id,
+		  content.`sort`,
+		  content.`pid`,
+		  content.`location_id`,
+		  content.`location_name`,
+		  content.`time`,
+		  content.`equipment_id`,
+		  u.`name`  as handler_name
+		FROM
+		  `ngt_patrol_scheme` scheme 
+		  LEFT JOIN `ngt_patrol_scheme_content` content ON scheme.`id` = content.`patrol_scheme_id` 
+		  LEFT JOIN sys_user u ON scheme.`handler_id` = u.`id` 
+		WHERE
+		  scheme.`id` = #{value} 
+	</select>
+	
+ 
+	 
+	<insert id="save" parameterType="com.huaxing.bean.PatrolScheme">
+		insert into ngt_patrol_scheme
+		(
+			`id`, 
+			`company_id`, 
+			`code`, 
+			`type`, 
+			`period`, 
+			`start_date`, 
+			`handler_id`, 
+			`termination_condition`, 
+			`termination_parameter`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`state`, 
+			`enable_flag`,
+			`task_id`
+		)
+		values
+		(
+			#{id}, 
+			#{companyId}, 
+			#{code}, 
+			#{type}, 
+			#{period}, 
+			#{startDate}, 
+			#{handlerId}, 
+			#{terminationCondition}, 
+			#{terminationParameter}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{state}, 
+			#{enableFlag},
+			#{taskId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.PatrolScheme">
+		update ngt_patrol_scheme 
+		<set>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="period != null">`period` = #{period}, </if>
+			<if test="startDate != null">`start_date` = #{startDate}, </if>
+			<if test="handlerId != null">`handler_id` = #{handlerId}, </if>
+			<if test="terminationCondition != null">`termination_condition` = #{terminationCondition}, </if>
+			<if test="terminationParameter != null">`termination_parameter` = #{terminationParameter}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag} ,</if>
+			<if test="executionCount != null">`execution_count` = #{executionCount},</if>
+			<if test="taskId != null">`task_id` = #{taskId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_patrol_scheme where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_patrol_scheme where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

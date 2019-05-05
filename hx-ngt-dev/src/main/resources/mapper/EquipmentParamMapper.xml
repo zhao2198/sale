@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentParamRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.EquipmentParam" id="equipmentParamMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="code" column="code"/>
+        <result property="ismain" column="ismain"/>
+        <result property="unit" column="unit"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enable_flag" column="enableFlag"/>
+    </resultMap>
+<!--根据id查询设备参数详情  王晓超 2018年7月9日14:39:20  -->
+	<select id="get" resultType="com.huaxing.bean.EquipmentParam">
+		select * from ngt_equipment_param where id = #{id}
+	</select>
+<!-- 查询设备参数列表  王晓超 2018年7月9日14:39:44 -->
+	<select id="queryList" resultType="com.huaxing.bean.EquipmentParam">
+		select * from ngt_equipment_param 
+		<where>
+		
+			<if test="name != null">
+				AND name LIKE CONCAT('%',#{name},'%')
+			</if>
+		</where>
+		order by code asc
+	</select>
+	 <!--新增设备参数  王晓超 2018年7月9日14:40:48  -->
+	<insert id="save" parameterType="com.huaxing.bean.EquipmentParam">
+		insert into ngt_equipment_param
+		(
+			`id`, 
+			`name`, 
+			`type`, 
+			`code`, 
+			`ismain`, 
+			`unit`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`,
+			 enable_flag
+		)
+		values
+		(
+			#{id}, 
+			#{name}, 
+			#{type}, 
+			#{code}, 
+			#{ismain}, 
+			#{unit}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks},
+			#{enableFlag}
+		)
+	</insert>
+	 <!-- 修改设备参数 王晓超 2018年7月9日14:40:58 -->
+	<update id="update" parameterType="com.huaxing.bean.EquipmentParam">
+		update ngt_equipment_param 
+		<set>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="ismain != null">`ismain` = #{ismain}, </if>
+			<if test="unit != null">`unit` = #{unit}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks},</if>
+			<if test="enableFlag != null">enable_flag = #{enableFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	<!-- 删除设备参数  王晓超 2018年7月9日14:41:24 -->
+	<delete id="delete">
+		delete from ngt_equipment_param where id = #{id}
+	</delete>
+	<!-- 查询参数信息  fengyi 2018年7月13日10:53:24 -->
+	<select id="getParamList" resultType="com.huaxing.bean.EquipmentParam">
+		select 
+			code,
+			isMain,
+			unit
+		FROM ngt_equipment_param 
+		WHERE del_flag='0' 
+	</select>
+	
+	
+	<select id="isExists" resultType="int"  parameterType="com.huaxing.bean.EquipmentParam">
+	      select count(*) from ngt_equipment_param where name=#{name}
+	      
+	      <if test="id!=null and id!='' ">
+	         and  id != #{id}
+	      </if>
+	</select>
+	
+	<delete id="deleteBatch">
+		delete from ngt_equipment_param where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

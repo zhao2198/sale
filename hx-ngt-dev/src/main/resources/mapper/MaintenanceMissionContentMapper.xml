@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MaintenanceMissionContentRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MaintenanceMissionContent" id="maintenanceMissionContentMap">
+        <result property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="repairResult" column="repair_result"/>
+        <result property="solution" column="solution"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="sort" column="sort"/>
+        <result property="equipmentId" column="equipment_id"/>
+        <result property="equipmentName" column="equipment_name"/>
+        <result property="checkPoint" column="check_point"/>
+        <result property="checkItem" column="check_item"/>
+        <result property="keyPoint" column="key_point"/>
+        <result property="checkStandard" column="check_standard"/>
+        <result property="pid" column="pid"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.MaintenanceMissionContent">
+		select * from ngt_periodic_maintenance_record where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.MaintenanceMissionContent">
+		select * from ngt_periodic_maintenance_record
+       
+	</select>
+	
+ 
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MaintenanceMissionContent">
+		insert into ngt_periodic_maintenance_record
+		(
+			`id`, 
+			`mission_id`, 
+			`repair_result`, 
+			`solution`,  
+			`sort`, 
+			`equipment_id`, 
+			`equipment_name`, 
+			`check_point`, 
+			`check_item`, 
+			`key_point`, 
+			`check_standard`
+		)
+		values
+		<foreach collection="contentList" item="content" separator=",">
+		(
+			#{content.id}, 
+			#{id}, 
+			#{content.repairResult}, 
+			#{content.solution}, 
+			#{content.sort}, 
+			#{content.equipmentId}, 
+			#{content.equipmentName}, 
+			#{content.checkPoint}, 
+			#{content.checkItem}, 
+			#{content.keyPoint}, 
+			#{content.checkStandard}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MaintenanceMissionContent">
+		update ngt_periodic_maintenance_record 
+		<set>
+			<if test="missionId != null">`mission_id` = #{missionId}, </if>
+			<if test="repairResult != null">`repair_result` = #{repairResult}, </if>
+			<if test="solution != null">`solution` = #{solution}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId}, </if>
+			<if test="equipmentName != null">`equipment_name` = #{equipmentName}, </if>
+			<if test="checkPoint != null">`check_point` = #{checkPoint}, </if>
+			<if test="checkItem != null">`check_item` = #{checkItem}, </if>
+			<if test="keyPoint != null">`key_point` = #{keyPoint}, </if>
+			<if test="checkStandard != null">`check_standard` = #{checkStandard}, </if>
+			<if test="pid != null">`pid` = #{pid}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_periodic_maintenance_record where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_periodic_maintenance_record where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

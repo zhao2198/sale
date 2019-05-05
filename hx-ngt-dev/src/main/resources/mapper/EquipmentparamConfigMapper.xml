@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentParamConfigRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.repository.EquipmentParamConfigRepository" id="equipmentParamConfigMap">
+        <result property="id" column="id"/>
+        <result property="channelState" column="channel_state"/>
+        <result property="paramName" column="param_name"/>
+        <result property="phase" column="phase"/>
+        <result property="branchCode" column="branch_code"/>
+        <result property="paramtype" column="paramType"/>
+        <result property="transmission" column="transmission"/>
+        <result property="grade" column="grade"/>
+        <result property="cycle" column="cycle"/>
+        <result property="acquisitioncardChannel" column="acquisitioncard_channel"/>
+        <result property="ismain" column="ismain"/>
+        <result property="measuretag" column="measuretag"/>
+        <result property="paramSource" column="param_source"/>
+        <result property="paramUnit" column="param_unit"/>
+        <result property="projectCode" column="project_code"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.EquipmentParamConfig">
+		select * from ngt_equipmentparam_config where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.EquipmentParamConfig">
+		select a.* from ngt_equipmentparam_config a
+		where 
+       	a.company_id=#{companyId}
+       	<if test="acquisitioncardChannel !=null and acquisitioncardChannel != ''">
+			AND a.acquisitioncard_channel = #{acquisitioncardChannel}
+		</if>
+		<if test="paramSource !=null and paramSource != ''">
+			AND a.param_source = #{paramSource}
+		</if>
+       	<if test="branchCode !=null and branchCode != ''">
+			AND a.branch_code = #{branchCode}
+		</if>
+		<if test="projectCode != null and projectCode != ''">
+			AND a.project_code = #{projectCode}
+		</if>
+	</select>
+	
+	<select id="getCountByProjectCode" resultType="java.lang.Integer">
+		select count(*) from ngt_equipmentparam_config a  
+		where  
+	    a.project_code=#{projectCode}
+		and a.company_id=#{companyId}
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.EquipmentParamConfig">
+		insert into ngt_equipmentparam_config
+		(
+			`id`, 
+			`channel_state`, 
+			`param_name`, 
+			`phase`, 
+			`branch_code`, 
+			`paramtype`, 
+			`transmission`, 
+			`grade`, 
+			`cycle`, 
+			`acquisitioncard_channel`, 
+			`ismain`, 
+			`measuretag`, 
+			`param_source`, 
+			`param_unit`, 
+			`project_code`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{channelState}, 
+			#{paramName}, 
+			#{phase}, 
+			#{branchCode}, 
+			#{paramType}, 
+			#{transmission}, 
+			#{grade}, 
+			#{cycle}, 
+			#{acquisitioncardChannel}, 
+			#{ismain}, 
+			#{measuretag}, 
+			#{paramSource}, 
+			#{paramUnit}, 
+			#{projectCode}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			0
+		)
+	</insert>
+	 <insert id="saveBatch" >
+	INSERT INTO ngt_equipmentparam_config(
+			id,
+			channel_state,
+			param_name,
+			phase,
+			branch_code,
+			paramtype,
+			acquisitioncard_channel,
+			transmission,
+			grade,
+			cycle,
+			ismain,
+			measuretag,
+			param_source,
+			param_unit,
+			project_code,
+			company_id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			enable_flag
+		) VALUES 
+			<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.id},
+				#{item.channelState},
+				#{item.paramName},
+				#{item.phase},
+				#{item.branchCode},
+				#{item.paramType},
+				#{item.acquisitioncardChannel},
+				#{item.transmission},
+				#{item.grade},
+				#{item.cycle},
+				#{item.ismain},
+				#{item.measuretag},
+				#{item.paramSource},
+				#{item.paramUnit},
+				#{item.projectCode},
+				#{item.companyId},
+				#{item.createBy},
+				#{item.createDate},
+				#{item.updateBy},
+				#{item.updateDate},
+				#{item.remarks},
+				'0'
+			)
+		</foreach>
+	</insert>
+	<update id="updateBatch" parameterType="com.huaxing.bean.EquipmentParamConfig" >
+	    update ngt_equipmentparam_config 
+	     set
+	    <if test="paramSource != null">`param_source` = #{paramSource}, </if>
+	    update_by =
+	      <foreach collection="list" item="item" index="index" 
+		        separator=" " open="case ID" close="end">
+		        when #{item.id} then  #{item.updateBy}
+		   </foreach>,
+		  update_date =<foreach collection="list" item="item" index="index" 
+		        separator=" " open="case ID" close="end">
+		        when #{item.id} then  #{item.updateDate}
+		   </foreach>,
+		  enable_flag=
+		    <foreach collection="list" item="item" index="index" 
+		        separator=" " open="case ID" close="end">
+		        when #{item.id} then #{item.enableFlag}
+		    </foreach>
+	    where id in
+	    <foreach collection="list" index="index" item="item" 
+	        separator="," open="(" close=")">
+	        #{item.id}
+	    </foreach>
+	 </update>
+	
+	<update id="update" parameterType="com.huaxing.bean.EquipmentParamConfig">
+		update ngt_equipmentparam_config 
+		<set>
+			<if test="channelState != null">`channel_state` = #{channelState}, </if>
+			<if test="paramName != null">`param_name` = #{paramName}, </if>
+			<if test="phase != null">`phase` = #{phase}, </if>
+			<if test="branchCode != null">`branch_code` = #{branchCode}, </if>
+			<if test="paramtype != null">`paramtype` = #{paramType}, </if>
+			<if test="transmission != null">`transmission` = #{transmission}, </if>
+			<if test="grade != null">`grade` = #{grade}, </if>
+			<if test="cycle != null">`cycle` = #{cycle}, </if>
+			<if test="acquisitioncardChannel != null">`acquisitioncard_channel` = #{acquisitioncardChannel}, </if>
+			<if test="ismain != null">`ismain` = #{ismain}, </if>
+			<if test="measuretag != null">`measuretag` = #{measuretag}, </if>
+			<if test="paramSource != null">`param_source` = #{paramSource}, </if>
+			<if test="paramUnit != null">`param_unit` = #{paramUnit}, </if>
+			<if test="projectCode != null">`project_code` = #{projectCode}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="delFlag != null">`del_flag` = #{delFlag}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_equipmentparam_config where id = #{value}
+	</delete>
+	<delete id="deleteByAcquisitonCardId">
+		delete from ngt_equipmentparam_config where acquisitioncard_channel = #{acquisitioncardChannelId} 
+		<if test="paramSource !=null ">
+		and `param_source` = #{paramSource}
+		</if>
+	</delete>
+	
+	<delete id="deleteBatch" parameterType="list">
+		 delete from ngt_equipmentparam_config where equipment in
+        <foreach  collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+	</delete>
+	
+	<delete id="deleteBatchByCode" parameterType="list">
+		 delete from ngt_equipmentparam_config where id in
+        <foreach  collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+	</delete>
+
+	<select id="queryOtherParam" resultType="com.huaxing.bean.EquipmentParamConfig">
+		SELECT 
+		  a.id id,
+		  a.param_name paramName,
+		  a.measuretag measuretag,
+		  a.enable_flag enableFlag,
+		  a.param_unit paramUnit
+		FROM
+		  ngt_equipmentparam_config a 
+		WHERE acquisitioncard_channel = 
+		  (SELECT 
+		    b.id 
+		  FROM
+		    ngt_acquisitioncard_channel b 
+		  WHERE 
+		    b.company_id = #{companyId} 
+		    AND b.equipment = #{equipmentId}) 
+		   <if test="enableFlag != null and enableFlag != ''">
+				AND a.enable_flag = #{enableFlag}
+			</if>
+		   <if test="dataType !=null and dataType != ''">
+				AND a.param_source = #{dataType}
+			</if>
+		    AND a.ismain !='1'
+		ORDER BY a.param_name ASC 
+	</select>
+
+</mapper>

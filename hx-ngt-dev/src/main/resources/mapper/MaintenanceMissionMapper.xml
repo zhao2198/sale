@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MaintenanceMissionRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MaintenanceMission" id="maintenanceMissionMap">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="hopeTime" column="hope_time"/>
+        <result property="createDate" column="create_date"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="companyId" column="company_id"/>
+        <result property="templateId" column="template_id"/>
+        <result property="state" column="state"/>
+        <result property="command" column="command"/>
+    </resultMap>
+    
+      <resultMap type="com.huaxing.bean.MaintenanceMission" id="detailMaintenanceMissionMap" extends="maintenanceMissionMap">
+    	<result property="handlerName" column="handler_name" />
+		<result property="createName" column="create_name" />
+    </resultMap>
+    
+	<resultMap type="com.huaxing.bean.MaintenanceMission" id="extendsMaintenanceMissionMap" extends="detailMaintenanceMissionMap">
+		<collection property="contentList" ofType="com.huaxing.bean.MaintenanceMissionContent">
+	        <id property="id" column="content_id"/>
+	        <result property="repairResult" column="repair_result"/>
+	        <result property="missionId" column="mission_id"/>
+	        <result property="solution" column="solution"/>
+	        <result property="sort" column="sort"/>
+	        <result property="equipmentId" column="equipment_id"/>
+	        <result property="equipmentName" column="equipment_name"/>
+	        <result property="checkPoint" column="check_point"/>
+	        <result property="checkItem" column="check_item"/>
+	        <result property="keyPoint" column="key_point"/>
+	        <result property="checkStandard" column="check_standard"/>
+		</collection>
+    </resultMap>
+
+	<select id="get" resultMap="extendsMaintenanceMissionMap">
+		SELECT 
+		  pm.*,
+		  content.id AS content_id,
+		  content.`check_item`,
+		  content.`check_point`,
+		  content.`check_standard`,
+		  content.`equipment_id`,
+		  content.`equipment_name`,
+		  content.`key_point`,
+		  content.`mission_id`,
+		  content.`repair_result`,
+		  content.`solution`,
+		  content.`sort`,
+		   hu.`name` as handler_name 
+		FROM
+		  ngt_periodic_maintenance_mission pm 
+		  LEFT JOIN ngt_periodic_maintenance_record content ON pm.id = content.mission_id 
+		   left join sys_user hu on hu.`id` = pm.`handler_id`
+		WHERE pm.id = #{id} 
+	</select>
+
+	<select id="queryList" resultMap="extendsMaintenanceMissionMap">
+			select 
+			pm.`id`,
+	        pm.`code`,
+	        pm.`handler_id`,
+             pm.`hope_time`,
+             pm.`create_date`,
+             pm.`create_by`,
+             pm.`update_date`,
+             pm.`update_by`,
+             pm.`template_id`,
+             pm.`state`,
+             pm.`command`,
+			u.`name` as create_name,
+			 hu.`name` as handler_name  from ngt_periodic_maintenance_mission pm
+			 left join sys_user u on u.`id` = pm.`create_by` 
+			 left join sys_user hu on hu.`id` = pm.`handler_id`
+			where pm.company_id like concat(#{companyId}, '%')
+		<if test="code != null and code != ''">and pm.code like concat('%', #{code}, '%') </if>
+		
+		<if test="state!=null and state!=''">and pm.state=#{state} </if>
+		<if test="startDate != null"><![CDATA[ AND pm.create_date >= #{startDate} ]]></if>
+		<if test="endDate != null"><![CDATA[ AND pm.create_date <= #{endDate} ]]></if>
+       
+	</select>
+ 
+	<insert id="save" parameterType="com.huaxing.bean.MaintenanceMission">
+		insert into ngt_periodic_maintenance_mission
+		(
+			`id`, 
+			`code`, 
+			`handler_id`, 
+			`hope_time`, 
+			`create_date`, 
+			`create_by`, 
+			`update_date`, 
+			`update_by`, 
+			`company_id`, 
+			`template_id`, 
+			`state`, 
+			`command`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{handlerId}, 
+			#{hopeTime}, 
+			#{createDate}, 
+			#{createBy}, 
+			#{updateDate}, 
+			#{updateBy}, 
+			#{companyId}, 
+			#{templateId}, 
+			#{state}, 
+			#{command}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MaintenanceMission">
+		update ngt_periodic_maintenance_mission 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="handlerId != null">`handler_id` = #{handlerId}, </if>
+			<if test="hopeTime != null">`hope_time` = #{hopeTime}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="templateId != null">`template_id` = #{templateId}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="command != null">`command` = #{command}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_periodic_maintenance_mission where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_periodic_maintenance_mission where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.RepairRecordEquipmentStockRecordRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.RepairRecordEquipmentStockRecord" id="repairRecordEquipmentStockRecordMap">
+        <result property="id" column="id"/>
+        <result property="recordId" column="record_id"/>
+        <result property="stockNum" column="stock_num"/>
+        <result property="equipmentId" column="equipment_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="desciption" column="desciption"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="submitFlag" column="submit_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.RepairRecordEquipmentStockRecord">
+		select * from ngt_repair_record_equipment_stock_record where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.RepairRecordEquipmentStockRecord">
+		select * from ngt_repair_record_equipment_stock_record
+	</select>
+	
+ 	
+	 
+	<insert id="save" parameterType="com.huaxing.bean.RepairRecordEquipmentStockRecord">
+		insert into ngt_repair_record_equipment_stock_record
+		(
+			id, 
+			record_id, 
+			stock_num, 
+			equipment_id, 
+			create_by, 
+			create_date, 
+			update_by, 
+			update_date, 
+			desciption, 
+			submit_flag
+		)
+		values
+		(
+			#{id}, 
+			#{recordId}, 
+			#{stockNum}, 
+			#{equipmentId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{desciption},
+			#{submitFlag}
+		)
+	</insert>
+	
+	<insert id="saveBatch">
+		insert into ngt_repair_record_equipment_stock_record
+		(
+			id, 
+			record_id, 
+			stock_num, 
+			equipment_id, 
+			create_by, 
+			create_date, 
+			update_by, 
+			update_date, 
+			desciption, 
+			submit_flag
+		)
+		values
+		<foreach collection="list" separator="," item="item">
+		 (
+			#{item.id}, 
+			#{item.recordId}, 
+			#{item.stockNum}, 
+			#{item.equipmentId}, 
+			#{item.createBy}, 
+			#{item.createDate}, 
+			#{item.updateBy}, 
+			#{item.updateDate}, 
+			#{item.desciption},
+			#{item.submitFlag}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.RepairRecordEquipmentStockRecord">
+		update ngt_repair_record_equipment_stock_record 
+		<set>
+			<if test="recordId != null">`record_id` = #{recordId}, </if>
+			<if test="stockNum != null">`stock_num` = #{stockNum}, </if>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="desciption != null">`desciption` = #{desciption}, </if>
+			<if test="submitFlag != null">`submit_flag` = #{submitFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_repair_record_equipment_stock_record where id = #{value}
+	</delete>
+	
+	<delete id="deleteByRecordId">
+		delete from ngt_repair_record_equipment_stock_record where record_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_repair_record_equipment_stock_record where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

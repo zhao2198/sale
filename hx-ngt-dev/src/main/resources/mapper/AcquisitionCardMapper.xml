@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.AcquisitionCardRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.AcquisitionCard" id="acquisitionCardMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="channelNum" column="channel_num"/>
+        <result property="type" column="type"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+    </resultMap>
+	<!-- 根据id查询采集卡详情  王晓超 2018年7月9日10:42:07 -->
+	<select id="get" resultType="com.huaxing.bean.AcquisitionCard">
+		select * from ngt_acquisition_card where id = #{id}
+	</select>
+	<!--查询采集卡列表 王晓超2018年7月9日10:43:37 -->
+	<select id="queryList" resultType="com.huaxing.bean.AcquisitionCard">
+		select * from ngt_acquisition_card 
+		<where>
+			<if test="name != null">
+				AND
+					name LIKE CONCAT('%',#{name},'%')
+			</if>
+		</where>
+	</select>
+	 <!--新增采集卡  王晓超 2018年7月9日10:45:35  -->
+	<insert id="save" parameterType="com.huaxing.bean.AcquisitionCard">
+		insert into ngt_acquisition_card
+		(
+			`id`, 
+			`name`, 
+			`channel_num`, 
+			`type`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`
+		)
+		values
+		(
+			#{id}, 
+			#{name}, 
+			#{channelNum}, 
+			#{type}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}
+		)
+	</insert>
+	 <!-- 修改采集卡  王晓超 2018年7月9日10:45:23 -->
+	<update id="update" parameterType="com.huaxing.bean.AcquisitionCard">
+		update ngt_acquisition_card 
+		<set>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="channelNum != null">`channel_num` = #{channelNum}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<!-- 判断是否存在相同公司的名称  -->
+	<select id="isExists" resultType="int"  parameterType="com.huaxing.bean.AcquisitionCard">
+	      select count(*) from ngt_acquisition_card where name=#{name}
+	      
+	      <if test="id!=null and id!='' ">
+	         and  id != #{id}
+	      </if>
+	</select>
+	<!--删除采集卡  王晓超 2018年7月9日10:45:14  -->
+	<delete id="delete">
+		delete from ngt_acquisition_card where id = #{id}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_acquisition_card where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

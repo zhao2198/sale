@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.ShiftclassRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.Shiftclass" id="shiftclassMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="oldstarttime" column="oldStartTime"/>
+        <result property="oldendtime" column="oldEndTime"/>
+        <result property="newdate" column="newDate"/>
+        <result property="classId" column="class_id"/>
+        <result property="reasonApply" column="reason_apply"/>
+        <result property="applyStatus" column="apply_status"/>
+        <result property="approve" column="approve"/>
+        <result property="reasonReject" column="reason_reject"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.Shiftclass" parameterType="java.lang.String">
+		<!-- select * from ngt_shiftclass where id = #{value} -->
+			SELECT 
+				shift.`id` AS "id",
+				shift.`code` AS "code",
+				shift.`apply_status` AS "applyStatus",
+				mission.`id` AS "missionId",
+				mission.`start_time` AS "oldstarttime",
+				mission.`end_time` AS "oldendtime",
+				u.id  AS "applyId",
+				u.name  AS "applyName",
+				shift.`newDate` AS "newdate",
+				shift.`reason_apply` AS "reasonApply",
+				shift.`approve` AS "approve",
+				shift.`reason_reject` AS "reasonReject",
+				shift.`remarks` AS "remarks",
+				clazz.`id` AS "classId",
+				clazz.`name` AS "className",
+				clazz.`start_time` AS "start",
+				clazz.`end_time` AS "end"
+				FROM ngt_shiftclass shift
+				LEFT JOIN ngt_duty_mission mission 
+				ON shift.`mission_id`=mission.`id`
+				LEFT JOIN sys_user u 
+				ON u.`id`=mission.`user_id`
+				LEFT JOIN ngt_classes clazz 
+				ON clazz.`id`=shift.`class_id`
+				WHERE shift.`id`=#{id} 
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.Shiftclass">
+		SELECT  
+		clazz.id  AS "id",
+		clazz.code  AS "code",
+		u.id  AS "applyId",
+		u.name  AS "applyName",
+		clazz.`create_date`  AS "applyDate",
+		clazz.`apply_status` AS "applyStatus"
+		FROM ngt_shiftclass  clazz
+		LEFT JOIN  sys_user u ON u.id=clazz.`create_by`
+		where clazz.del_flag='0'
+		<if test="companyId !=null and companyId!=''">
+		and clazz.company_id=#{companyId}
+		</if>
+     	<if test="code!=null and code !=''">
+		and clazz.code like concat('%',#{code},'%')
+		</if>
+		<if test="startTime !=null">
+		<![CDATA[ AND DATE_FORMAT(clazz.create_date,'%Y-%m-%d')>= DATE_FORMAT(#{startTime} ,'%Y-%m-%d')]]>
+		</if>
+		<if test="endTime !=null">
+		<![CDATA[ AND DATE_FORMAT(clazz.create_date,'%Y-%m-%d')<= DATE_FORMAT(#{endTime} ,'%Y-%m-%d')]]>
+		</if>
+		<if test="applyStatus !=null and applyStatus!=''">
+		AND clazz.apply_status=#{applyStatus}
+		</if>
+		<if test="applyArr!=null">
+			AND clazz.`create_by` IN 
+			<foreach item="id" collection="applyArr" open="(" separator="," close=")">
+				#{id}
+			</foreach>
+		</if>
+		ORDER BY clazz.create_date DESC
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_shiftclass 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.Shiftclass">
+		insert into ngt_shiftclass
+		(
+			`id`, 
+			`code`, 
+			`mission_id`, 
+			`oldStartTime`, 
+			`oldEndTime`, 
+			`newDate`, 
+			`class_id`, 
+			`reason_apply`, 
+			`apply_status`, 
+			`approve`, 
+			`reason_reject`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag` 
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{missionId}, 
+			#{oldstarttime}, 
+			#{oldendtime}, 
+			#{newdate}, 
+			#{classId}, 
+			#{reasonApply}, 
+			#{applyStatus}, 
+			#{approve}, 
+			#{reasonReject}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag} 
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.Shiftclass">
+		update ngt_shiftclass 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="missionId != null">`mission_id` = #{missionId}, </if>
+			<if test="oldstarttime != null">`oldStartTime` = #{oldstarttime}, </if>
+			<if test="oldendtime != null">`oldEndTime` = #{oldendtime}, </if>
+			<if test="newdate != null">`newDate` = #{newdate}, </if>
+			<if test="classId != null">`class_id` = #{classId}, </if>
+			<if test="reasonApply != null">`reason_apply` = #{reasonApply}, </if>
+			<if test="applyStatus != null">`apply_status` = #{applyStatus}, </if>
+			<if test="approve != null">`approve` = #{approve}, </if>
+			<if test="reasonReject != null">`reason_reject` = #{reasonReject}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_shiftclass where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_shiftclass where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<!-- 模糊查询调班的编号 -->
+	<select id="getLikelyCodes" resultType="java.lang.String"  parameterType="com.huaxing.bean.Shiftclass">
+	      select code from ngt_shiftclass where 
+	        del_flag='0'
+	       <if test="companyId!=null and companyId !=''">
+			and company_id=#{companyId}
+		  </if>
+	      <if test="code !=null and code !='' ">
+	         and  code like concat('%',#{code},'%')
+	      </if>
+	</select>
+
+</mapper>

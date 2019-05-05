@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxing.repository.ElectricCostRepository">
+	<resultMap type="com.huaxing.bean.BasicCostTemplate" id="getBasicCostConfigMapper">
+		<id column="bianyaqiId" property="bianyaqiId"/>
+		<result column="calcType" property="calcType"/>
+		<result column="companyId" property="companyId"/>
+		<result column="avgApparentPower" property="avgApparentPower"/>
+		<result column="hetongrongliang" property="hetongrongliang"/>
+		<result column="yunxingrongliang" property="yunxingrongliang"/>
+		<collection property="basicCostSignList" ofType="com.huaxing.bean.BasicCostSign">
+			<result column="basicPrice" property="basicPrice"/>
+			<result column="apparentPowerStart" property="apparentPowerStart"/>
+			<result column="apparentPowerEnd" property="apparentPowerEnd"/>
+		</collection>
+	</resultMap>
+	<select id="getBasicCostConfig" resultMap="getBasicCostConfigMapper">
+		SELECT
+			b.electric_start AS 'apparentPowerStart',
+			b.electric_end AS 'apparentPowerEnd',
+			s.equipment_id AS 'bianyaqiId',
+			s.company_id AS 'companyId',
+			b.electric_cost_basic_type AS 'calcType',
+			b.electric_cost_basic_value AS 'basicPrice',
+			shizaigonglv.avg_apparent_power AS 'avgApparentPower',
+			(
+				SELECT
+					`value`
+				FROM
+					`ngt_parameter`
+				WHERE
+					TYPE = CONCAT(
+						'bianYaQi_he_tong_rong_liang_',
+						s.equipment_id
+					)
+			) AS 'hetongrongliang',
+			(
+				SELECT
+					`value`
+				FROM
+					`ngt_parameter`
+				WHERE
+					TYPE = CONCAT(
+						'bianYaQi_run_rong_liang_',
+						s.equipment_id
+					)
+			) AS 'yunxingrongliang'
+		FROM
+			ngt_electric_cost_template_setting s 
+		LEFT JOIN ngt_electric_cost_basic b ON b.template_id = s.id
+		LEFT JOIN (
+			SELECT
+				equipment_id,
+				MAX(b. DATA) AS 'avg_apparent_power'
+			FROM
+				(
+					SELECT
+						equipment_id,
+						AVG(source. DATA) AS 'data'
+					FROM
+						(
+							SELECT
+								equipment_id AS 'equipment_id',
+								aphase_voltage AS 'data',
+								acquisition_time AS 'time'
+							FROM
+								ngt_coll_device_data
+							WHERE
+								data_type = #{dataType}
+							AND acquisition_time &gt;= #{startDate}<!--大于等于 -->
+							AND acquisition_time &lt;= #{endDate}<!-- 小于等于 -->
+						) source
+					GROUP BY
+						UNIX_TIMESTAMP(source.time) DIV (60 * 15)
+				) b
+			GROUP BY
+				b.equipment_id
+		) shizaigonglv ON shizaigonglv.equipment_id = s.equipment_id
+		ORDER BY
+			s.equipment_id,
+			b.electric_start + 0 ASC
+	</select>
+	
+	
+	<!-- 根据设备id查询变压器id  王晓超 2018年5月30日17:08:06 -->
+	<select id="getEquipmentId" resultType="String">
+		SELECT
+			transformer
+		FROM
+			ngt_equipment
+		WHERE
+			id = #{equipmentId}
+	</select>
+	
+	<!-- 保存电度电费  王晓超 2018年5月31日09:41:04 -->
+	<insert id="savePowerCost">
+		INSERT INTO ngt_power_electric_cost 
+			(
+				id,
+				data_id,
+				equipment_id,
+				company_id,
+				current_electr,
+				cost,
+				electrovalence,
+				data_type,
+				type,
+				create_date
+			)
+		VALUES
+			(
+				#{id},
+				#{dataId},
+				#{equipmentId},
+				#{companyId},
+				#{currentElectr},
+				#{cost},
+				#{electrovalence},
+				#{dataType},
+				#{type},
+				#{createDate}
+			)
+	</insert>
+	<!-- 查询系统中所有的变压器  只返回id，用来计算基本电费  王晓超 2018年6月1日09:51:50 -->
+	<select id="getTransformerList" resultType="java.lang.String">
+		SELECT
+			id AS 'transformerId'
+		FROM
+			ngt_equipment
+		WHERE
+			type = '1'
+	</select>
+	
+	<!-- 保存基本电费   王晓超  2018年6月4日09:32:20 -->
+	<insert id="saveBasicCost">
+		INSERT INTO ngt_basic_electric_cost 
+			(
+				id,
+				equipment_id,
+				company_id,
+				type,
+				cost,
+				electrovalence,
+				month,
+				data_type,
+				create_date
+			)
+		VALUES
+			(
+				#{id},
+				#{equipmentId},
+				#{companyId},
+				#{type},
+				#{cost},
+				#{electrovalence},
+				#{month},
+				#{dataType},
+				#{createDate}
+			)
+	</insert>
+	<!-- 获取系统中每个变压器每个月的电度电费  王晓超 2018年6月4日10:30:15 -->
+	<resultMap type="HashMap" id="getPowerCostListOnMonthMapper">
+		<id column="equipment_id" property="equipmentId"/><!--变压器id  -->
+		<result column="company_id" property="companyId"/><!-- 公司id-->
+		<result column="cost" property="cost"/><!-- 电费 -->
+	</resultMap>
+	<select id="getPowerCostListOnMonth" resultMap="getPowerCostListOnMonthMapper">
+		SELECT
+			equipment_id AS 'equipmentId',
+			company_id AS 'companyId',
+			SUM(total_cost) AS 'cost'
+		FROM
+			ngt_power_cost
+		WHERE
+			create_date &gt;= #{startDate}<!--大于等于 -->
+		AND create_date &lt;= #{endDate}<!--大于等于 -->
+		AND data_type = #{dataType}
+		GROUP BY
+			equipment_id
+	</select>
+	
+	
+	<!-- 获取系统中每个变压器每个月的基本电费  王晓超 2018年6月4日10:30:44 -->
+	<resultMap type="HashMap" id="getBasicCostListOnMonthMapper">
+		<id column="equipment_id" property="equipmentId"/><!--变压器id  -->
+		<result column="company_id" property="companyId"/><!-- 公司id-->
+		<result column="cost" property="cost"/>
+	</resultMap>
+	<select id="getBasicCostListOnMonth" resultMap="getBasicCostListOnMonthMapper">
+		SELECT
+			equipment_id AS 'equipmentId',
+			company_id AS 'companyId',
+			cost
+		FROM
+			ngt_basic_electric_cost
+		WHERE
+			create_date &gt;= #{startDate}<!--大于等于 -->
+		AND create_date &lt;= #{endDate}<!--大于等于 -->
+		AND data_type = #{dataType}
+	</select>
+	
+	<!-- 获取系统中所有变压器的功率因数执行标准，用来查找确定力调电费的计算系数  王晓超 2018年6月4日11:13:33 -->
+	<resultMap type="HashMap" id="getForceCriterionMapper">
+		<id column="equipment_id" property="equipmentId"/><!--变压器id  -->
+		<result column="company_id" property="companyId"/><!-- 公司id-->
+		<result column="forceCriterion" property="forceCriterion"/><!-- 功率因数标准值-->
+	</resultMap>
+	<select id="getForceCriterion" resultMap="getForceCriterionMapper">
+		SELECT
+			s.equipment_id AS 'equipmentId',
+			s.company_id AS 'companyId',
+			f.electric_cost_force_value AS 'forceCriterion'
+		FROM
+			ngt_electric_cost_force f
+		LEFT JOIN ngt_electric_cost_template_setting s ON f.template_id = s.id
+	</select>
+
+	<!-- 获取系统中每个变压器的有功电度和无功电度，用来确定变压器的力调系数  王晓超  2018年6月4日15:49:51 -->
+	<resultMap type="HashMap" id="getActivePowerAndReactivePowerListMapper">
+		<id column="equipment_id" property="equipmentId"/><!--变压器id  -->
+		<result column="total_active_power" property="activePower"/><!-- 有功电度-->
+		<result column="total_reactive_power" property="ractivePower"/><!-- 无功电度-->
+	</resultMap>
+	<select id="getActivePowerAndReactivePowerList" resultMap="getActivePowerAndReactivePowerListMapper">
+		SELECT
+			equipment_id AS 'equipment_id',
+			MAX(total_active_power) AS 'total_active_power',
+			MAX(total_reactive_power) AS 'total_reactive_power'
+		FROM
+			ngt_coll_device_data
+		WHERE
+			create_date &gt;= #{startDate}<!--大于等于 -->
+		AND create_date &lt;= #{endDate}<!--大于等于 -->
+		AND data_type = #{dataType}
+		GROUP BY
+		equipment_id
+	</select>
+	<!-- 查找力调系数  王晓超 2018年6月4日17:00:50 -->
+	<select id="getFocerValue" resultType="java.math.BigDecimal">
+		SELECT
+			power_value
+		FROM
+			ngt_power_factor
+		WHERE
+			${forceCoefficient} BETWEEN degree_start
+		AND degree_end
+		AND type = #{factorType}
+	</select>
+	<!-- 保存力调电费进库   王晓超 2018年6月4日17:12:04 -->
+	<insert id="saveForceCost">
+		INSERT INTO ngt_force_electric_cost 
+			(
+				id,
+				equipment_id,
+				company_id,
+				force_cost,
+				basic_cost,
+				power_cost,
+				factor_type,
+				factor_value,
+				month,
+				data_type,
+				create_date
+			)
+		VALUES
+			(
+				#{id},
+				#{equipmentId},
+				#{companyId},
+				#{forceCost},
+				#{basicCost},
+				#{powerCost},
+				#{factorType},
+				#{factorValue},
+				#{month},
+				#{dataType},
+				#{createDate}
+			)
+	</insert>
+	<!-- 根据变压器id和当天的时间去库中查找当天的数据  王晓超 2018年7月18日13:58:56 -->
+	<select id="getPowerCostData" resultType="com.huaxing.bean.PowerCostEntity">
+		SELECT
+			*
+		FROM
+			ngt_power_cost
+		WHERE
+			DATE_FORMAT(create_date, '%Y-%m-%d') = #{createDateFormat}
+		AND
+			equipment_id = #{equipmentId}
+		AND company_id = #{companyId}
+		AND data_type = #{dataType}
+	</select>
+	<!-- 更新电度电费表  王晓超 2018年7月18日14:10:55 -->
+	<update id="updatePowerCostOnToday">
+		update ngt_power_cost 
+		<set>
+			<if test="dataType != null">`data_type` = #{dataType}, </if>
+			<if test="sharpCost != null">`sharp_cost` = #{sharpCost}, </if>
+			<if test="peakCost != null">`peak_cost` = #{peakCost}, </if>
+			<if test="flatCost != null">`flat_cost` = #{flatCost}, </if>
+			<if test="valleyCost != null">`valley_cost` = #{valleyCost}, </if>
+			<if test="sharpElectricQuantity != null">`sharp_electric_quantity` = #{sharpElectricQuantity}, </if>
+			<if test="peakElectricQuantity != null">`peak_electric_quantity` = #{peakElectricQuantity}, </if>
+			<if test="flatElectricQuantity != null">`flat_electric_quantity` = #{flatElectricQuantity}, </if>
+			<if test="valleyElectricQuantity != null">`valley_electric_quantity` = #{valleyElectricQuantity}, </if>
+			<if test="totalCost != null">`total_cost` = #{totalCost}, </if>
+			<if test="totalElectricQuantity != null">`total_electric_quantity` = #{totalElectricQuantity}, </if>
+			<if test="year != null">`year` = #{year}, </if>
+			<if test="month != null">`month` = #{month}, </if>
+			<if test="day != null">`day` = #{day}</if>
+		</set>
+		<where>
+			<if test="equipmentId != null">and equipment_id = #{equipmentId}</if>
+			<if test="companyId != null">and company_id = #{companyId}</if>
+			<if test="createDateFormat != null">and DATE_FORMAT(create_date, '%Y-%m-%d') = #{createDateFormat}</if>
+		</where>
+	</update>
+	<!-- 新增数据至电度电费新表  王晓超 2018年7月18日14:17:38 -->
+	<insert id="savePowerCostOnToday" parameterType="com.huaxing.bean.PowerCost">
+		insert into ngt_power_cost
+		(
+			`id`, 
+			`equipment_id`, 
+			`company_id`, 
+			`data_type`, 
+			`sharp_cost`, 
+			`peak_cost`, 
+			`flat_cost`, 
+			`valley_cost`, 
+			`sharp_electric_quantity`, 
+			`peak_electric_quantity`, 
+			`flat_electric_quantity`, 
+			`valley_electric_quantity`, 
+			`total_cost`, 
+			`total_electric_quantity`, 
+			`year`, 
+			`month`, 
+			`day`, 
+			`create_date`
+		)
+		values
+		(
+			#{id}, 
+			#{equipmentId}, 
+			#{companyId}, 
+			#{dataType}, 
+			#{sharpCost}, 
+			#{peakCost}, 
+			#{flatCost}, 
+			#{valleyCost}, 
+			#{sharpElectricQuantity}, 
+			#{peakElectricQuantity}, 
+			#{flatElectricQuantity}, 
+			#{valleyElectricQuantity}, 
+			#{totalCost}, 
+			#{totalElectricQuantity}, 
+			#{year}, 
+			#{month}, 
+			#{day}, 
+			#{createDate}
+		)
+	</insert>
+	<!-- 获取能管在线统计数据     当天   王晓超 2018年10月16日11:00:35 -->
+	<select id="getDataStatistical" resultType="com.huaxing.bean.DataStatistical">
+		SELECT
+			*
+		FROM
+			ngt_data_statistical
+		WHERE
+			DATE_FORMAT(create_date, '%Y-%m-%d') = #{createDateFormat}
+		AND
+			equipment_id = #{equipmentId}
+		AND company_id = #{companyId}
+		AND data_type = #{dataType}
+		AND column_flag = #{columnFlag}
+	</select>
+	<!-- 获取数据统计表的sum  王晓超 2018年10月16日15:20:54 -->
+	<select id="getSumAndCount" resultType="com.huaxing.bean.StatisticalCountAndSum">
+		SELECT SUM(${columnFlag}) AS 'sum',COUNT(id) AS 'count' FROM ngt_coll_device_data
+		WHERE
+		acquisition_time &gt;= #{startDate}<!--大于等于 -->
+		AND acquisition_time &lt;= #{endDate}<!--大于等于 -->
+		AND company_id = #{companyId}
+		AND data_type = #{dataType}
+		AND equipment_id = #{equipmentId}
+	</select>
+	<!-- 新增数据至数据统计表  王晓超 2018年10月16日15:37:04 -->
+	<insert id="saveDataStatistical">
+		insert into ngt_data_statistical
+		(
+			`id`, 
+			`equipment_id`, 
+			`company_id`, 
+			`data_type`, 
+			`max_value`, 
+			`min_value`, 
+			`avg_value`, 
+			`max_date`, 
+			`min_date`, 
+			`column_flag`, 
+			`create_date`
+		)
+		values
+		(
+			#{id}, 
+			#{equipmentId}, 
+			#{companyId}, 
+			#{dataType}, 
+			#{maxValue}, 
+			#{minValue}, 
+			#{avgValue}, 
+			#{maxDate}, 
+			#{minDate}, 
+			#{columnFlag}, 
+			#{createDate}
+		)
+	</insert>
+	<!-- 更新数据统计表  王晓超 2018年10月16日16:08:18 -->
+	<update id="updateDataStatistical">
+		update ngt_data_statistical 
+		<set>
+			<if test="dataType != null">`data_type` = #{dataType}, </if>
+			<if test="maxValue != null">`max_value` = #{maxValue}, </if>
+			<if test="minValue != null">`min_value` = #{minValue}, </if>
+			<if test="avgValue != null">`avg_value` = #{avgValue}, </if>
+			<if test="maxDate != null">`max_date` = #{maxDate}, </if>
+			<if test="minDate != null">`min_date` = #{minDate}, </if>
+			<if test="columnFlag != null">`column_flag` = #{columnFlag}, </if>
+		</set>
+		<where>
+			<if test="equipmentId != null">and equipment_id = #{equipmentId}</if>
+			<if test="companyId != null">and company_id = #{companyId}</if>
+			<if test="dataType != null">and data_type = #{dataType}</if>
+			<if test="columnFlag != null">and column_flag = #{columnFlag}</if>
+			<if test="createDateFormat != null">and DATE_FORMAT(create_date, '%Y-%m-%d') = #{createDateFormat}</if>
+		</where>
+	</update>
+</mapper>

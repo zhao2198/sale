@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentParamAnalysisRepository">
+
+	<select id="getListByparamAttr" resultType='com.huaxing.bean.EquipmentParamAnalysis'>
+		SELECT 
+		   AVG(a.${paramAttr})  AS value ,
+		  DATE_FORMAT(a.acquisition_time,${dateFormatStr}) as time
+		FROM
+		  ngt_coll_device_data a 
+		WHERE a.del_flag = '0' 
+		  AND a.company_id = #{companyId}
+		  AND a.equipment_id = #{equipmentId}
+		  AND DATE_FORMAT(a.acquisition_time,${dateFormatStr}) BETWEEN DATE_FORMAT(#{startDate},${dateFormatStr}) AND DATE_FORMAT(#{endDate},${dateFormatStr})
+		 GROUP BY DATE_FORMAT(a.acquisition_time,${dateFormatStr})
+	 
+	</select>
+	<select id="getListByAcmultElectr" resultType='com.huaxing.bean.EquipmentParamAnalysis'>
+		SELECT 
+		   MAX(a.`acmult_electr`)  AS value,
+		  DATE_FORMAT(a.acquisition_time,${dateFormatStr}) as time  
+		FROM
+		  ngt_coll_device_data a 
+		WHERE a.del_flag = '0' 
+		  AND a.company_id = #{companyId}
+		  AND a.equipment_id = #{equipmentId}
+		  AND DATE_FORMAT(a.acquisition_time,${dateFormatStr}) BETWEEN DATE_FORMAT(#{startDate},${dateFormatStr}) AND DATE_FORMAT(#{endDate},${dateFormatStr})
+		 GROUP BY DATE_FORMAT(a.acquisition_time,${dateFormatStr})
+	 
+	</select>
+	<select id="queryParamList" resultType="com.huaxing.bean.EquipmentParam">
+		SELECT a.* FROM ngt_equipment_param a WHERE a.`code` !='11010'	
+	</select>
+</mapper>

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.ElectricPriceTemplateRepository">
+<!-- 保存电价主模板 -->
+	<insert id="savePriceTemplate">
+		Insert into ngt_electric_cost_template_setting
+		(
+			id,
+			company_id,
+			equipment_id,
+			template_code,
+			template_name,
+			electric_cost_type,
+			create_by,
+			create_date
+		)
+		values
+		(
+			#{id},
+			#{companyId},
+			#{equipmentId},
+			#{templateCode},
+			#{templateName},
+			#{electricCostType},
+			#{createBy},
+			#{createDate}
+		)
+	</insert>
+	<!--保存电度电价模板  王晓超 2018年6月28日15:18:07  -->
+	<insert id="savePowerPriceTemplate">
+		Insert into ngt_electric_cost_power
+		(
+			id,
+			template_id,
+			type,
+			value,
+			time,
+			time_type,
+			isLadder,
+			create_by,
+			create_date
+		)
+		values
+		<foreach collection="list" separator="," item="item">
+		(
+			#{item.id},
+			#{item.templateId},
+			#{item.type},
+			#{item.value},
+			#{item.time},
+			#{item.timeType},
+			#{item.isladder},
+			#{item.createBy},
+			#{item.createDate}
+		)
+		</foreach>
+	</insert>
+	<!-- 保存电度电价中阶梯电价模板  王晓超 2018年6月28日15:18:33 -->
+	<insert id="saveLadderPriceTemplate">
+		Insert into ngt_electric_cost_ladder
+		(
+			id,
+			template_id,
+			electric_cost_ladder_start,
+			electric_cost_ladder_end,
+			electric_cost_ladder_value,
+			electric_cost_ladder_type,
+			ladder_sign,
+			create_by,
+			create_date
+		)
+		values
+		<foreach collection="list" separator="," item="item">
+		(
+			#{item.id},
+			#{item.templateId},
+			#{item.electricCostLadderStart},
+			#{item.electricCostLadderEnd},
+			#{item.electricCostLadderValue},
+			#{item.electricCostLadderType},
+			#{item.ladderSign},
+			#{item.createBy},
+			#{item.createDate}
+		)
+		</foreach>
+	</insert>
+	
+	
+	
+	
+	<!-- 保存基本电价模板   王晓超 2018年6月28日15:19:01 -->
+	<insert id="saveBasicPriceTemplate">
+		insert into ngt_electric_cost_basic
+			(
+				id,
+				template_id,
+				electric_cost_basic_type,
+				electric_cost_basic_value,
+				electric_start,
+				electric_end,
+				basic_sign,
+				create_by,
+				create_date
+			)
+		values
+		<foreach collection="list" separator="," item="item">
+			(
+				#{item.id},
+				#{item.templateId},
+				#{item.electricCostBasicType},
+				#{item.electricCostBasicValue},
+				#{item.electricStart},
+				#{item.electricEnd},
+				#{item.basicSign},
+				#{item.createBy},
+				#{item.createDate}
+			)
+		</foreach>
+	</insert>
+	<!-- 保存力调电价模板  王晓超 2018年6月28日15:19:18 -->
+	<insert id="saveForcePriceTemplate">
+		insert into ngt_electric_cost_force
+		(
+			id,
+			template_id,
+			electric_cost_force_value,
+			electric_cost_force_url,
+			create_by,
+			create_date
+		)
+		values
+		(
+			#{id},
+			#{templateId},
+			#{electricCostForceValue},
+			#{electricCostForceUrl},
+			#{createBy},
+			#{createDate}
+		)
+	</insert>
+	
+	<!-- 删除电价模板  王晓超 2018年6月29日10:33:00 -->
+	<delete id="deleteElectricPriceTemplate">
+		DELETE s,
+		 p,
+		 l,
+		 f,
+		 b
+		FROM
+			ngt_electric_cost_template_setting s
+		LEFT JOIN ngt_electric_cost_power p ON p.`template_id` = s.id
+		LEFT JOIN ngt_electric_cost_ladder l ON l.`template_id` = s.id
+		LEFT JOIN ngt_electric_cost_force f ON f.`template_id` = s.id
+		LEFT JOIN ngt_electric_cost_basic b ON b.`template_id` = s.id
+		WHERE
+			s.id = #{templateId}
+	</delete>
+	<!-- 查询电价主模板  王晓超 2018年6月29日16:02:00 -->
+	<select id="getElectricPriceTemplate" resultType="com.huaxing.bean.ElectricPriceTemplate">
+		SELECT
+			s.id,
+			e.`name` AS 'equipmentName',
+			s.equipment_id,
+			s.company_id,
+			s.template_code,
+			s.template_name,
+			s.electric_cost_type,
+			s.create_by,
+			s.create_date
+		FROM
+			ngt_electric_cost_template_setting s
+		LEFT JOIN ngt_equipment e ON s.equipment_id = e.id
+		WHERE
+			s.id = #{templateId}
+			AND
+			s.company_id = #{companyId}
+	</select>
+	<!-- 获取电度电价模板信息  王晓超 2018年6月29日16:02:33 -->
+	<select id="getPowerPriceTemplate" resultType="com.huaxing.bean.ElectricPricePower">
+		SELECT
+			id,
+			template_id,
+			type,
+			`value`,
+			time,
+			time_type,
+			isLadder,
+			create_by,
+			create_date
+		FROM
+			ngt_electric_cost_power
+		WHERE
+			template_id = #{templateId}
+	</select>
+	<!-- 获取电度电价中的阶梯电价模板信息  王晓超 2018年6月29日16:02:54 -->
+	<select id="getLadderPriceInPowerTemplate" resultType="com.huaxing.bean.ElectricPriceLadder">
+		SELECT
+			id,
+			template_id,
+			electric_cost_ladder_start,
+			electric_cost_ladder_end,
+			electric_cost_ladder_value,
+			electric_cost_ladder_type,
+			ladder_sign,
+			create_by,
+			create_date
+		FROM
+			ngt_electric_cost_ladder
+		WHERE
+			template_id = #{templateId}
+	</select>
+	<!--获取基本电价模板信息  王晓超 2018年6月29日16:03:10  -->
+	<select id="getBasicPriceTemplate" resultType="com.huaxing.bean.ElectricPriceBasic">
+		SELECT
+			id,
+			template_id,
+			electric_cost_basic_type,
+			electric_cost_basic_value,
+			electric_start,
+			electric_end,
+			basic_sign,
+			create_by,
+			create_date
+		FROM
+			ngt_electric_cost_basic
+		WHERE
+			template_id = #{templateId}
+	</select>
+	<!-- 获取力调电价模板信息  王晓超 2018年6月29日16:03:20 -->
+	<select id="getForcePriceTemplate" resultType="com.huaxing.bean.ElectricPriceForce">
+		SELECT
+			id,
+			template_id,
+			electric_cost_force_value,
+			electric_cost_force_url,
+			create_by,
+			create_date
+		FROM
+			ngt_electric_cost_force
+		WHERE
+			template_id = #{templateId}
+	</select>
+	<!-- 查询电价模板主列表  王晓超 2018年7月2日11:05:48 -->
+	<select id="getElectricPriceTemplateList" resultType="com.huaxing.bean.ElectricPriceTemplate">
+		SELECT
+			e.`name` AS 'equipmentName',
+			s.*
+		FROM
+			ngt_electric_cost_template_setting s
+		LEFT JOIN ngt_equipment e ON s.equipment_id = e.id
+		<where>
+			<if test="equipmentId != null">AND s.equipment_id = #{equipmentId}</if>
+			<if test="keyword != null">AND (
+				s.template_code LIKE CONCAT('%',#{keyword},'%') or s.template_name LIKE CONCAT('%',#{keyword},'%')
+				)
+			</if>
+			<if test="companyId != null">AND s.company_id = #{companyId}</if>
+		</where>
+	</select>
+	<!-- 根据公司id和变压器id得到电费模板中的尖峰平谷时间段，并带有阶梯标志-->
+	<resultMap type="java.util.HashMap" id="getElectricCostTimesMapper">
+		<result column="equipment_id" property="equipment_id"/><!-- 变压器id -->
+		<result column="value" property="value"/><!-- 电价-->
+		<result column="time" property="time"/><!-- 小时-->
+		<result column="time_type" property="time_type"/><!-- 小时归属尖峰平谷哪个时间段-->
+	</resultMap>
+	<select id="getElectricCostTimes" resultMap="getElectricCostTimesMapper">
+		SELECT
+			s.equipment_id,
+			p.`value`,
+		p.time,
+		p.time_type,
+		p.isLadder
+		FROM
+			ngt_electric_cost_template_setting s
+		LEFT JOIN ngt_electric_cost_power p ON p.template_id = s.id
+		WHERE
+		s.equipment_id = #{equipmentId}
+		AND s.company_id=#{companyId}
+		GROUP BY
+		${groupName}
+	</select>
+	<!-- 判断变压器下的电价模板是否能删除   王晓超 2018年10月11日10:33:33 -->
+	<select id="isDeleteElectricPriceTemplate" resultType="int">
+		SELECT COUNT(id) FROM ngt_power_cost WHERE equipment_id = #{equipmentId}
+	</select>
+</mapper>

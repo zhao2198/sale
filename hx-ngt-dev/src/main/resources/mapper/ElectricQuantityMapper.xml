@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.ElectricQuantityRepository">
+	<!-- 获取电量原始数据  王晓超 2018年7月26日19:13:31 -->
+	<select id="getElectricQuanTityDataList" resultType="com.huaxing.bean.ElectricQuantity">
+		SELECT
+			sum(sharp_electric_quantity) AS 'sharp_electric_quantity',
+			sum(peak_electric_quantity) AS 'peak_electric_quantity',
+			sum(flat_electric_quantity) AS 'flat_electric_quantity',
+			sum(valley_electric_quantity) AS 'valley_electric_quantity',
+			sum(total_electric_quantity) AS 'total_electric_quantity',
+			DATE_FORMAT(create_date,'${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}')
+	</select>
+	<!-- 获取电量饼图数据  王晓超 2018年7月27日10:58:24 -->
+	<select id="getPieData" resultType="com.huaxing.bean.ElectricQuantity">
+		SELECT
+			sum(sharp_electric_quantity) AS 'sharp_electric_quantity',
+			sum(peak_electric_quantity) AS 'peak_electric_quantity',
+			sum(flat_electric_quantity) AS 'flat_electric_quantity',
+			sum(valley_electric_quantity) AS 'valley_electric_quantity',
+			sum(total_electric_quantity) AS 'total_electric_quantity',
+			DATE_FORMAT(create_date,'${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+	</select>
+	
+	<!-- 查询尖峰平谷各时段用来在环形图上显示   王晓超 2018年7月30日10:20:04 -->
+	<select id="getTimeList" resultType="com.huaxing.bean.ElectricPricePower">
+		SELECT
+			p.time,
+			p.time_type
+		FROM
+			ngt_electric_cost_template_setting s
+		LEFT JOIN ngt_electric_cost_power p ON p.template_id = s.id
+		WHERE
+			s.company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND s.electric_cost_type = '1'
+		GROUP BY
+			time
+	</select>
+</mapper>

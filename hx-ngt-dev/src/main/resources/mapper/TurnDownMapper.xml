@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TurnDownRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.TurnDown" id="turnDownMap">
+        <result property="id" column="id"/>
+        <result property="companyId" column="company_id"/>
+        <result property="repairFormId" column="repair_form_id"/>
+        <result property="type" column="type"/>
+        <result property="hopeTime" column="hope_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+    
+     <resultMap type="com.huaxing.bean.TurnDown" id="extendTurnDownMap" extends="turnDownMap">
+      <result property="createName" column="create_name"/>
+     
+     </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.TurnDown">
+		select * from ngt_turn_down where id = #{value}
+	</select>
+
+	<select id="queryList" resultMap="extendTurnDownMap">
+		select trun.*,hu.name as create_name from ngt_turn_down trun  LEFT JOIN sys_user hu ON trun.create_by = hu.id 
+		 where repair_form_id = #{repairFormId}
+     
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.TurnDown">
+		insert into ngt_turn_down
+		(
+			`id`, 
+			`company_id`, 
+			`repair_form_id`, 
+			`hope_time`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag` 
+		)
+		values
+		(
+			#{id}, 
+			#{companyId}, 
+			#{repairFormId}, 
+			#{hopeTime}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks},
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.TurnDown">
+		update ngt_turn_down 
+		<set>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="repairFormId != null">`repair_form_id` = #{repairFormId}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="hopeTime != null">`hope_time` = #{hopeTime}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_turn_down where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_turn_down where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

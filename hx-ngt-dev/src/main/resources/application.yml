@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: ${profile.active}
+  application:
+    name: ngt
+huaxing:
+  datatype: 
+    value: 2

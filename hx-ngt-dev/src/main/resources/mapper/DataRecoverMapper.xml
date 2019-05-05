@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.DataRecoverRepository">
+	<select id="getCollDeviceDataList" resultType="com.huaxing.bean.CollDeviceData">
+		SELECT * FROM ngt_coll_device_data 
+		<where>
+			company_id = #{companyId}
+			and acquisition_time BETWEEN #{startTime} and #{endTime}
+		</where>		
+	</select>
+	<select id="getPowerCostData" resultType="int">
+		SELECT
+			count(*)
+		FROM
+			ngt_power_cost
+		<where>
+			company_id = #{companyId}
+			and create_date BETWEEN #{startTime} and #{endTime}
+		</where>
+	</select>
+</mapper>

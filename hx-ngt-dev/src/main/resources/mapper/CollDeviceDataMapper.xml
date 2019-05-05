@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.CollDeviceDataRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.CollDeviceData" id="collDeviceDataMap">
+        <result property="id" column="id"/>
+        <result property="collectorId" column="collector_id"/>
+        <result property="equipmentId" column="equipment_id"/>
+        <result property="dataType" column="data_type"/>
+        <result property="aphaseVoltage" column="aphase_voltage"/>
+        <result property="bphaseVoltage" column="bphase_voltage"/>
+        <result property="cphaseVoltage" column="cphase_voltage"/>
+        <result property="aphaseCurrent" column="aphase_current"/>
+        <result property="bphaseCurrent" column="bphase_current"/>
+        <result property="cphaseCurrent" column="cphase_current"/>
+        <result property="nphaseCurrent" column="nphase_current"/>
+        <result property="sumActivePower" column="sum_active_power"/>
+        <result property="aphaseActivePower" column="aphase_active_power"/>
+        <result property="bphaseActivePower" column="bphase_active_power"/>
+        <result property="cphaseActivePower" column="cphase_active_power"/>
+        <result property="sumReactivePower" column="sum_reactive_power"/>
+        <result property="aphaseReactivePower" column="aphase_reactive_power"/>
+        <result property="bphaseReactivePower" column="bphase_reactive_power"/>
+        <result property="cphaseReactivePower" column="cphase_reactive_power"/>
+        <result property="sumApparentPower" column="sum_apparent_power"/>
+        <result property="aphaseApparentPower" column="aphase_apparent_power"/>
+        <result property="bphaseApparentPower" column="bphase_apparent_power"/>
+        <result property="cphaseApparentPower" column="cphase_apparent_power"/>
+        <result property="sumPowerFactor" column="sum_power_factor"/>
+        <result property="aphasePowerFactor" column="aphase_power_factor"/>
+        <result property="bphasePowerFactor" column="bphase_power_factor"/>
+        <result property="cphasePowerFactor" column="cphase_power_factor"/>
+        <result property="aphaseVoltagePhaseAngle" column="aphase_voltage_phase_angle"/>
+        <result property="bphaseVoltagePhaseAngle" column="bphase_voltage_phase_angle"/>
+        <result property="cphaseVoltagePhaseAngle" column="cphase_voltage_phase_angle"/>
+        <result property="aphaseCurrentPhaseAngle" column="aphase_current_phase_angle"/>
+        <result property="bphaseCurrentPhaseAngle" column="bphase_current_phase_angle"/>
+        <result property="cphaseCurrentPhaseAngle" column="cphase_current_phase_angle"/>
+        <result property="aphaseCurrentThd" column="aphase_current_thd"/>
+        <result property="bphaseCurrentThd" column="bphase_current_thd"/>
+        <result property="cphaseCurrentThd" column="cphase_current_thd"/>
+        <result property="acmultElectr" column="acmult_electr"/>
+        <result property="currentElectr" column="current_electr"/>
+        <result property="threePhaseCurrentImbalance" column="three_phase_current_imbalance"/>
+        <result property="gridFrequency" column="grid_frequency"/>
+        <result property="temperature" column="temperature"/>
+        <result property="humidity" column="humidity"/>
+        <result property="switchStatus" column="switch_status"/>
+        <result property="acquisitionTime" column="acquisition_time"/>
+        <result property="companyId" column="company_id"/>
+        <result property="gatewayType" column="gateway_type"/>
+        <result property="gatewayVersion" column="gateway_version"/>
+        <result property="gatewayCode" column="gateway_code"/>
+        <result property="stationNum" column="station_num"/>
+        <result property="createDate" column="create_date"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="enableFlag" column="enable_flag"/>
+        <result property="totalActivePower" column="total_active_power"/>
+        <result property="totalReactivePower" column="total_reactive_power"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.CollDeviceData">
+		select * from ngt_coll_device_data where id = #{value}
+	</select>
+
+	  <select id="queryDivceData"  resultType="com.huaxing.bean.CollDeviceData">
+			SELECT 
+			  a.* 
+			FROM
+			  ngt_coll_device_data a
+		<where>
+			 a.company_id=#{companyId} 
+			<if test='dataType !=null and dataType !="" '>
+				and a.data_type= #{dataType} 
+			</if>
+			and	 a.equipment_id = #{equipmentId} 
+			  AND acquisition_time = 
+			  (SELECT 
+			    MAX(acquisition_time) 
+			FROM
+			    ngt_coll_device_data b
+			WHERE b.equipment_id = #{equipmentId} )
+		</where>
+    </select>
+	 <!-- 根据条件统计数据 -->
+    <select id="queryCountDataByDate"   resultType="com.huaxing.bean.CollDeviceData">
+		SELECT 
+		  ${measuretag} as yData,
+		  DATE_FORMAT(a.acquisition_time, '%Y-%m-%d %k:%i') as xData
+		FROM
+		  ngt_coll_device_data a 
+		WHERE 
+		a.del_flag='0'
+		and a.company_id=#{companyId}
+		and a.equipment_id = #{equipment} 
+		<if test='dataType !=null and dataType !="" '>
+				and a.data_type= #{dataType} 
+		</if>
+		and DATE_FORMAT(a.acquisition_time, '%Y-%m-%d') between DATE_FORMAT(#{startTime}, '%Y-%m-%d') and DATE_FORMAT(#{endTime}, '%Y-%m-%d')
+		order by  a.acquisition_time asc
+	</select>
+	<!-- 月统计需统计日平均值-->
+	<select id="queryCountDataByMonth"   resultType="com.huaxing.bean.CollDeviceData">
+		SELECT 
+		 format(AVG(${measuretag}),3) as yData,
+		  DATE_FORMAT(a.acquisition_time, '%Y-%m-%d') as xData
+		FROM
+		  ngt_coll_device_data a 
+		WHERE a.del_flag = '0' 
+		  AND a.company_id =#{companyId}
+		  AND a.equipment_id = #{equipment} 
+		  <if test='dataType !=null and dataType !="" '>
+				and a.data_type= #{dataType} 
+		  </if>
+		  AND DATE_FORMAT(a.acquisition_time, '%Y-%m') between #{startTime} and #{endTime}
+		 GROUP BY DATE_FORMAT(a.acquisition_time, '%Y-%m-%d') 
+		 order by  a.acquisition_time asc
+	</select>
+	<!-- 年统计需统计月平均值  -->
+	<select id="queryCountDataByYear"   resultType="com.huaxing.bean.CollDeviceData">
+		SELECT 
+		  format(AVG(${measuretag}),3) as yData,
+		  DATE_FORMAT(a.acquisition_time, '%Y-%m') as xData
+		FROM
+		  ngt_coll_device_data a 
+		WHERE a.del_flag = '0' 
+		  AND a.company_id = #{companyId}
+		  AND a.equipment_id = #{equipment} 
+		  <if test='dataType !=null and dataType !="" '>
+				and a.data_type= #{dataType} 
+		  </if>
+		  AND DATE_FORMAT(a.acquisition_time, '%Y') between #{startTime} and #{endTime}
+		 GROUP BY DATE_FORMAT(a.acquisition_time, '%Y-%m') 
+		 order by  a.acquisition_time asc
+	</select>
+	
+	 
+	
+
+</mapper>

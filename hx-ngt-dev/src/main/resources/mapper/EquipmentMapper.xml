@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.Equipment" id="equipmentMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="model" column="model"/>
+        <result property="type" column="type"/>
+        <result property="equV" column="equ_v"/>
+        <result property="equC" column="equ_c"/>
+        <result property="equP" column="equ_p"/>
+        <result property="transformer" column="transformer"/>
+        <result property="purchaseyear" column="purchaseyear"/>
+        <result property="manufacturedate" column="manufacturedate"/>
+        <result property="price" column="price"/>
+        <result property="desciption" column="desciption"/>
+        <result property="picture" column="picture"/>
+        <result property="qrcode" column="qrcode"/>
+        <result property="userId" column="user_id"/>
+        <result property="beginruntime" column="beginruntime"/>
+        <result property="monitorstate" column="monitorstate"/>
+        <result property="state" column="state"/>
+        <result property="energyClass" column="energy_class"/>
+        <result property="building" column="building"/>
+        <result property="organization" column="organization"/>
+        <result property="category" column="category"/>
+        <result property="distributionRoom" column="distribution_room"/>
+        <result property="collector" column="collector"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	
+	<select id="get" resultType="com.huaxing.bean.Equipment">
+		select 
+			a.*,
+			user.name AS "userName",
+			collector.name AS "collectorName",
+			updateBy.name AS "updateUserName",
+			building.name AS "buildingName",
+			organization.name AS "organizationName",
+			distributionRoom.name AS "distributionRoomName",
+			category.name AS "categoryName"  
+		 from ngt_equipment a
+		LEFT JOIN sys_user user ON user.id = a.user_id
+		LEFT JOIN ngt_collector collector ON collector.id = a.collector
+		LEFT JOIN sys_user updateBy ON updateBy.id = a.update_by
+		LEFT JOIN ngt_equipment_type building ON building.id = a.building
+		LEFT JOIN sys_office organization ON organization.id = a.organization
+		LEFT JOIN ngt_equipment_type distributionRoom ON distributionRoom.id = a.distribution_room
+		LEFT JOIN ngt_equipment_type category ON category.id = a.category
+		where
+		a.del_flag='0'
+		and a.id = #{id}
+      
+	</select>
+	
+	<select id="queryListByTypeId" resultType="com.huaxing.bean.Equipment">
+		select 
+			a.*,
+			building.name AS "buildingName",
+			organization.name AS "organizationName",
+			distributionRoom.name AS "distributionRoomName",
+			category.name AS "categoryName"  
+		 from ngt_equipment a
+		LEFT JOIN ngt_equipment_type building ON building.id = a.building
+		LEFT JOIN sys_office organization ON organization.id = a.organization
+		LEFT JOIN ngt_equipment_type distributionRoom ON distributionRoom.id = a.distribution_room
+		LEFT JOIN ngt_equipment_type category ON category.id = a.category
+		where
+		a.del_flag='0' and a.company_id = #{companyId}
+		<if test="building != null and building != ''">
+				AND a.building LIKE concat('%',#{building},'%')
+			</if>
+			<if test="organization != null and organization != ''">
+				AND a.organization LIKE concat('%',#{organization},'%')
+			</if>
+			<if test="distributionRoom != null and distributionRoom != ''">
+				AND a.distribution_room LIKE concat('%',#{distributionRoom},'%')
+			</if>
+			<if test="category != null and category != ''">
+				AND a.category LIKE concat('%',#{category},'%')
+			</if>
+      
+	</select>
+	<select id="queryList" resultType="com.huaxing.bean.Equipment">
+		select 
+			a.*,
+			user.name AS "userName",
+			collector.name AS "collectorName",
+			updateBy.name AS "updateUserName" 
+		 from ngt_equipment a
+		LEFT JOIN sys_user user ON user.id = a.user_id
+		LEFT JOIN ngt_collector collector ON collector.id = a.collector
+		LEFT JOIN sys_user updateBy ON updateBy.id = a.update_by
+      <where>
+      	a.del_flag='0'
+      	and a.company_id=#{companyId}
+     	    <if test="code != null and code != ''">
+				AND a.code LIKE concat('%',#{code},'%')
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					concat('%',#{name},'%')
+			</if>
+			<if test="model != null and model != ''">
+				AND a.model LIKE 
+					concat('%',#{model},'%')
+			</if>
+			<if test="userId != null and userId != ''">
+				AND a.user_id = #{userId}
+			</if>
+			<if test="type != null and type != ''">
+				AND a.type = #{type}
+			</if>
+			<if test="beginBeginruntime != null and endBeginruntime != null and beginBeginruntime != '' and endBeginruntime != ''">
+				AND DATE_FORMAT(a.beginruntime, '%Y-%m-%d')  BETWEEN DATE_FORMAT( #{beginBeginruntime}, '%Y-%m-%d')  AND DATE_FORMAT(#{endBeginruntime}, '%Y-%m-%d')
+			</if>
+			<if test="building != null and building != ''">
+				AND a.building LIKE concat('%',#{building},'%')
+			</if>
+			<if test="organization != null and organization != ''">
+				AND a.organization LIKE concat('%',#{organization},'%')
+			</if>
+			<if test="distributionRoom != null and distributionRoom != ''">
+				AND a.distribution_room LIKE concat('%',#{distributionRoom},'%')
+			</if>
+			<if test="category != null and category != ''">
+				AND a.category LIKE concat('%',#{category},'%')
+			</if>
+			<if test="monitorstate != null and monitorstate != ''">
+				AND a.monitorstate = #{monitorstate}
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+      </where>
+      order by a.name
+	</select>
+	
+	<select id="queryAll" resultType="com.huaxing.bean.Equipment">
+	select * from ngt_equipment m
+	</select>
+	
+	<select id="getEquIdByEquipmentType" resultType="string">
+		SELECT 
+		  a.id 
+		FROM
+		  ngt_equipment a 
+		WHERE 
+	    a.${equipmentTypeAttribute}= #{equipmentTypeAttributeId}
+	    AND a.del_flag='0'
+	  <!--   and a.type != '1' -->
+	    and a.company_id=#{companyId}
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_equipment a
+		where 
+		a.del_flag ='0'
+		and a.company_id =#{companyId}
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.Equipment">
+		insert into ngt_equipment
+		(
+			`id`, 
+			`code`, 
+			`name`, 
+			`model`, 
+			`type`, 
+			`equ_v`, 
+			`equ_c`, 
+			`equ_p`, 
+			`transformer`, 
+			`purchaseyear`, 
+			`manufacturedate`, 
+			`price`, 
+			`desciption`, 
+			`picture`, 
+			`qrcode`, 
+			`user_id`, 
+			`beginruntime`, 
+			`monitorstate`, 
+			`state`, 
+			`energy_class`, 
+			`building`, 
+			`organization`, 
+			`category`, 
+			`distribution_room`, 
+			`collector`, 
+			`manufacturer`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{name}, 
+			#{model}, 
+			#{type}, 
+			#{equV}, 
+			#{equC}, 
+			#{equP}, 
+			#{transformer}, 
+			#{purchaseyear}, 
+			#{manufacturedate}, 
+			#{price}, 
+			#{desciption}, 
+			#{picture}, 
+			#{qrcode}, 
+			#{userId}, 
+			#{beginruntime}, 
+			#{monitorstate}, 
+			#{state}, 
+			#{energyClass}, 
+			#{building}, 
+			#{organization}, 
+			#{category}, 
+			#{distributionRoom}, 
+			#{collector}, 
+			#{manufacturer}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.Equipment">
+		update ngt_equipment 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="model != null">`model` = #{model}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="equV != null">`equ_v` = #{equV}, </if>
+			<if test="equC != null">`equ_c` = #{equC}, </if>
+			<if test="equP != null">`equ_p` = #{equP}, </if>
+			<if test="transformer != null">`transformer` = #{transformer}, </if>
+			<if test="purchaseyear != null">`purchaseyear` = #{purchaseyear}, </if>
+			<if test="manufacturedate != null">`manufacturedate` = #{manufacturedate}, </if>
+			<if test="price != null">`price` = #{price}, </if>
+			<if test="desciption != null">`desciption` = #{desciption}, </if>
+			<if test="picture != null">`picture` = #{picture}, </if>
+			<if test="qrcode != null">`qrcode` = #{qrcode}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="beginruntime != null">`beginruntime` = #{beginruntime}, </if>
+			<if test="monitorstate != null">`monitorstate` = #{monitorstate}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="energyClass != null">`energy_class` = #{energyClass}, </if>
+			<if test="building != null">`building` = #{building}, </if>
+			<if test="organization != null">`organization` = #{organization}, </if>
+			<if test="category != null">`category` = #{category}, </if>
+			<if test="distributionRoom != null">`distribution_room` = #{distributionRoom}, </if>
+			<if test="collector != null">`collector` = #{collector}, </if>
+			<if test="manufacturer != null">`manufacturer` = #{manufacturer}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	
+	
+	<update id="deleteBatchByLogic">
+		update ngt_equipment set del_flag = '1' where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</update>
+	
+	<select id="getTransformerList" resultType="com.huaxing.bean.Equipment">
+		select
+			a.id,
+			a.name,
+			a.code
+		from ngt_equipment a
+		where
+			 a.del_flag ='0'
+			 and a.company_id =#{companyId}
+			 and a.type='1'
+	</select>
+	<select id="getMeterList" resultType="com.huaxing.bean.Equipment">
+		select
+			a.id,
+			a.name,
+			a.code
+		from ngt_equipment a
+		where
+			 a.${equipmentTypeAttribute}= #{equipmentTypeAttributeId}
+			 a.del_flag ='0'
+			 and a.company_id =#{companyId}
+			 and a.type='4'
+	</select>
+	
+	<select id="isExists" resultType="int">
+		select count(*)
+		 from 
+		 ngt_equipment a
+		 <where>
+		 	a.del_flag ='0'
+			and a.company_id =#{companyId}
+			and a.code=#{code}
+			<if test="id != null and id !=''">
+			and a.id !=#{id}
+			</if>
+		 </where>
+	</select>
+	<select id="isNameExists" resultType="int">
+		select count(*)
+		 from 
+		 ngt_equipment a
+		 <where>
+		 	a.del_flag ='0'
+			and a.company_id =#{companyId}
+			and a.name=#{name}
+			<if test="id != null and id !=''">
+			and a.id !=#{id}
+			</if>
+		 </where>
+	</select>
+	
+	<delete id="delete">
+		delete from ngt_equipment where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatchById">
+		DELETE   a,b  FROM  ngt_acquisitioncard_channel a  
+		LEFT JOIN ngt_equipmentparam_config b ON b.acquisitioncard_channel=a.id
+		WHERE a.equipment IN 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<select id="getCollectorProjectCode" resultType="string">
+		SELECT
+		 DISTINCT 
+		  (b.`project_code`) 
+		FROM
+		  `ngt_equipment` a 
+		  LEFT JOIN ngt_collector b ON  b.`id` =a.`collector`
+		WHERE a.id IN 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</select>
+
+</mapper>

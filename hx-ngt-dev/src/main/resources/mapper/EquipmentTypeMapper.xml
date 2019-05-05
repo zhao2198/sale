@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentTypeRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="com.huaxing.bean.EquipmentType"
+		id="equipmentTypeMap">
+		<result property="id" column="id" />
+		<result property="tid" column="tid" />
+		<result property="name" column="name" />
+		<result property="sort" column="sort" />
+		<result property="companyId" column="company_id" />
+		<result property="createBy" column="create_by" />
+		<result property="createDate" column="create_date" />
+		<result property="updateBy" column="update_by" />
+		<result property="updateDate" column="update_date" />
+		<result property="type" column="type" />
+		<result property="parentId" column="parent_id" />
+		<result property="parentIds" column="parent_ids" />
+		<result property="remarks" column="remarks" />
+		<result property="delFlag" column="del_flag" />
+		<result property="enableFlag" column="enable_flag" />
+	</resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.EquipmentType">
+		select * from ngt_equipment_type
+		where id = #{id}
+	</select>
+	
+	<select id="isExists" resultType="int">
+		select count(*) from ngt_equipment_type
+		where tid = #{tid} and company_id= #{companyId}
+	</select>
+	
+	<select id="isExistsChild" resultType="int">
+		select count(*) from ngt_equipment_type
+		where parent_id = #{tid} and company_id= #{companyId}
+	</select>
+	
+	<select id="isExistsByName" resultType="int">
+		select count(*) from ngt_equipment_type
+		where name = #{name} and company_id= #{companyId}
+		<if test="id != null"> and id != #{id}</if>
+	</select>
+	<!-- 查询设备列表 -->
+	<select id="queryList" resultType="com.huaxing.bean.EquipmentType">
+		select
+		type.*
+		from ngt_equipment_type type
+		where
+		 company_id= #{companyId} 
+		<if test="type != null and type !=''">
+		and type =#{type}
+		</if>
+		ORDER BY tid
+	</select>
+
+	<select id="queryAll" resultType="com.huaxing.bean.EquipmentType">
+	select 
+		type.*
+ 		from ngt_equipment_type type
+	</select>
+ 	
+	<insert id="save" parameterType="com.huaxing.bean.EquipmentType">
+
+		insert into ngt_equipment_type
+		(
+		`id`,
+		`tid`,
+		`name`,
+		`parent_id`,
+		`type`,
+		`sort`,
+		company_id,
+		`create_by`,
+		`create_date`,
+		`update_by`,
+		`update_date`,
+		`remarks`
+
+		)
+		values
+		(
+		#{id},
+		#{tid},
+		#{name},
+		#{parentId},
+		#{type},
+			#{sort},
+		#{companyId},
+		#{createBy},
+		#{createDate},
+		#{updateBy},
+		#{updateDate},
+		#{remarks}
+		)
+	</insert>
+	
+	
+	<insert id="saveBatch">
+
+		insert into ngt_equipment_type
+		(
+		`id`,
+		`tid`,
+		`name`,
+		`parent_id`,
+		`type`,
+		`sort`,
+		company_id,
+		`create_by`,
+		`create_date`,
+		`update_by`,
+		`update_date`,
+		`remarks`
+
+		)
+		values
+		<foreach collection="list" separator="," item="item">
+		(
+		#{item.id},
+		#{item.tid},
+		#{item.name},
+		#{item.parentId},
+		#{item.type},
+		#{item.sort},
+		#{item.companyId},
+		#{item.createBy},
+		#{item.createDate},
+		#{item.updateBy},
+		#{item.updateDate},
+		#{item.remarks}
+		)
+		</foreach>
+	</insert>
+	
+	
+	
+
+	<update id="update" parameterType="com.huaxing.bean.EquipmentType">
+		update ngt_equipment_type
+		<set>
+			<if test="tid != null">`tid` = #{tid}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="parentId != null">`parent_id` = #{parentId}, </if>
+			<if test="parentIds != null">`parent_ids` = #{parentIds}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<delete id="delete">
+		delete from ngt_equipment_type  where id = #{value}
+		<!-- delete from ngt_equipment_type where id = #{value} -->
+	</delete>
+
+	<!-- 获取最大id -->
+	 <select id="getMaxId" resultType="java.lang.String">
+		select max(tid) as id from ngt_equipment_type where company_id  = #{companyId} and parent_id = #{parentId}
+	</select>
+	 
+	<!--  <select id="getMaxId" resultType="java.lang.String">
+		select max(create_by) as id from ngt_equipment_type
+	</select>  -->
+
+
+
+	
+</mapper>

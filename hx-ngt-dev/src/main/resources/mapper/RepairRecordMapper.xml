@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.RepairRecordRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.RepairRecord" id="repairRecordMap">
+        <result property="id" column="id"/>
+        <result property="repairFormId" column="repair_form_id"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="takeTime" column="take_time"/>
+        <result property="recoveryTime" column="recovery_time"/>
+        <result property="result" column="result"/>
+        <result property="submitFlag" column="submit_flag"/>
+        <result property="url" column="url"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+        <result property="state" column="state"/>
+        <result property="command" column="command"/>
+    </resultMap>
+
+
+	 <resultMap type="com.huaxing.bean.RepairRecord" id="extendRepairRecordMap" extends="repairRecordMap">
+	 
+	 	<collection property="stockList" ofType="com.huaxing.bean.RepairRecordEquipmentStockRecord">
+	 			
+	 		 	<result property="equipmentId" column="equipment_id"/>
+		        <result property="name" column="name"/>
+		        <result property="code" column="code"/>
+		        <result property="type" column="type"/>
+		         <result property="stockNum" column="stock_num"/>
+		         <result property="desciption" column="desciption"/>
+		        <result property="stocknumber" column="stocknumber"/>
+	 	</collection>
+	 </resultMap>
+	 
+	 
+	<select id="get" resultType="com.huaxing.bean.RepairRecord">
+		select * from ngt_repair_record where id = #{value}
+	</select>
+	
+	<select id="getDetailById" resultMap="extendRepairRecordMap">
+		SELECT r.*,rs.`equipment_id`,rs.`stock_num`,rs.`desciption`,e.`name`,e.`code`,e.`type`,e.`stocknumber`
+		 FROM `ngt_repair_record` r LEFT JOIN `ngt_repair_record_equipment_stock_record` rs ON r.`id` = rs.`record_id` 
+		LEFT JOIN `ngt_equipment_house` e ON rs.`equipment_id` = e.`id`
+
+		WHERE r.`id` = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.RepairRecord">
+		select * from ngt_repair_record WHERE repair_form_id = #{repairFormId}
+       
+	</select>
+	
+
+ 	<select id="getCount" resultType="int">
+		SELECT 
+		  COUNT(*) 
+		FROM
+		  ngt_repair_record 
+		<trim prefix="where" prefixOverrides="and">
+		  del_flag = '0' 
+			<if test="repairFormId != null">and repair_form_id = #{repairFormId}</if>
+			<if test="submitFlag != null">and submit_flag = #{submitFlag}</if>
+			<if test="state != null">and state = #{state}</if>
+			<if test="result != null">and result = #{result}</if>
+		</trim>
+	</select>
+
+	 
+	<insert id="save" parameterType="com.huaxing.bean.RepairRecord">
+		insert into ngt_repair_record
+		(
+			`id`, 
+			`repair_form_id`, 
+			`start_time`, 
+			`end_time`, 
+			`take_time`, 
+			`recovery_time`, 
+			`result`, 
+			`submit_flag`, 
+			`url`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`, 
+			`state`, 
+			`command`
+		)
+		values
+		(
+			#{id}, 
+			#{repairFormId}, 
+			#{startTime}, 
+			#{endTime}, 
+			#{takeTime}, 
+			#{recoveryTime}, 
+			#{result}, 
+			#{submitFlag}, 
+			#{url}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag}, 
+			#{state}, 
+			#{command}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.RepairRecord">
+		update ngt_repair_record 
+		<set>
+			<if test="repairFormId != null">`repair_form_id` = #{repairFormId}, </if>
+			<if test="startTime != null">`start_time` = #{startTime}, </if>
+			<if test="endTime != null">`end_time` = #{endTime}, </if>
+			<if test="takeTime != null">`take_time` = #{takeTime}, </if>
+			<if test="recoveryTime != null">`recovery_time` = #{recoveryTime}, </if>
+			<if test="result != null">`result` = #{result}, </if>
+			<if test="submitFlag != null">`submit_flag` = #{submitFlag}, </if>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="command != null">`command` = #{command}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updateState" parameterType="com.huaxing.bean.RepairRecord">
+		UPDATE
+		  ngt_repair_record 
+		<set>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="command != null">`command` = #{command}</if>
+		</set>
+		WHERE
+		  id =#{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_repair_record where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_repair_record where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.NgtMenuRepository">
+ <resultMap id="menuResult" type="Menu">
+		<id property="id" column="id" />
+		<result property="parentIds" column="parentIds" />
+		<result property="name" column="name" />
+		<result property="href" column="href" />
+		<result property="target" column="target" />
+		<result property="icon" column="icon" />
+		<result property="sort" column="sort" />
+		<result property="isShow" column="is_show" />
+		<result property="permission" column="permission" />
+		<result property="sysType" column="sys_type" />
+	</resultMap>
+    
+	
+	<!-- 获取当前登录人所在系统的权限 -->
+	<select id="getPermissionsByUserId" parameterType="java.lang.String" resultType="com.huaxing.bean.Permissions">
+	     SELECT DISTINCT
+			  me.id,
+			  me.name,
+			  me.icon,
+			  me.parent_id as parentId,
+			  me.href as path,
+			  me.permission as permission
+		 FROM
+		  sys_user u 
+		  INNER JOIN sys_user_role ur  ON ur.user_id = u.`id` 
+		  INNER JOIN sys_role_menu rm  ON rm.`role_id` = ur.`role_id` 
+		  INNER JOIN sys_menu me  ON me.`id` = rm.`menu_id` 
+		  WHERE  u.id =#{userId} and me.sys_type=1
+		  ORDER BY me.sort ASC
+	</select>
+	
+	<delete id="deletRoleMenuId" parameterType="java.lang.String">
+	   delete  from sys_role_menu where role_id = #{roleId}
+	</delete>
+	
+	<!-- 给角色添加权限 -->
+	<insert id="saveRoleMenus" parameterType="map">
+		insert into sys_role_menu(role_id, menu_id) values 
+		<foreach collection="menuIds" index="index" item="menuId"  separator=",">
+            (#{roleId},#{menuId})
+        </foreach>
+	</insert>
+</mapper>

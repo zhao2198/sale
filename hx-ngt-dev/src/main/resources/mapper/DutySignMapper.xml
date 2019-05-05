@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.DutySignRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.DutySign" id="dutySignMap">
+        <result property="id" column="id"/>
+        <result property="signPerson" column="sign_person"/>
+        <result property="signinTime" column="signIn_time"/>
+        <result property="signoutTime" column="signOut_time"/>
+        <result property="signinStatus" column="signIn_status"/>
+        <result property="signoutStatus" column="signOut_status"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.DutySign">
+		select * from ngt_duty_sign where id = #{id}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.DutySign">
+		select * from ngt_duty_sign
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_duty_sign where del_flag='0'
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.DutySign">
+		insert into ngt_duty_sign
+		(
+			`id`, 
+			`sign_person`, 
+			`signIn_time`, 
+			`signOut_time`, 
+			`signIn_status`, 
+			<!-- `signOut_status`,  -->
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`
+		)
+		values
+		(
+			#{id}, 
+			#{signPersonId}, 
+			#{signinTime}, 
+			#{signoutTime}, 
+			#{signinStatus}, 
+		<!-- 	#{signoutStatus},  -->
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.DutySign">
+		update ngt_duty_sign 
+		<set>
+			<if test="signPerson != null">`sign_person` = #{signPerson}, </if>
+			<if test="signinTime != null">`signIn_time` = #{signinTime}, </if>
+			<if test="signoutTime != null">`signOut_time` = #{signoutTime}, </if>
+			<if test="signinStatus != null">`signIn_status` = #{signinStatus}, </if>
+			<if test="signoutStatus != null">`signOut_status` = #{signoutStatus}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="delFlag != null">`del_flag` = #{delFlag}, </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_duty_sign where id = #{id}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_duty_sign where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<!--查询已知人的 在一定时间范围内的值班次数   -->
+	<select id="queryForDutyStatistics_person" resultType="com.huaxing.bean.DutySign">
+		 select 
+		count(*) AS countOnOneTime,<!--某一时间点的签到总数  -->
+		<if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn_time,'%Y-%m-%d') AS 'time'</if>
+	    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn_time,'%Y-%m') AS 'time'</if>
+	    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn_time,'%Y') AS 'time'</if>
+	   from (
+	   select 
+	   signIn.signIn_time
+		from  ngt_duty_sign signIn
+		WHERE signIn.del_flag = '0'
+		AND <if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+	    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+	    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+		<![CDATA[ >=#{sdateTimeParam}]]>  
+		AND
+		<if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+	    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+	    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+		<![CDATA[ <=#{edateTimeParam} ]]>
+		<if test="userArr!=null">
+		AND  signIn.sign_person IN
+			<foreach collection="userArr" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+			</foreach>
+		</if> 
+		<if test="companyId!=null and companyId!=''">
+		 AND signIn.company_id=#{companyId}
+		</if>
+		AND signIn.sign_person is not null
+		and signIn.sign_person!='') TT
+		GROUP BY 
+		<if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn_time,'%Y-%m-%d')</if>
+	    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn_time,'%Y-%m')</if>
+	    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn_time,'%Y')</if>
+	</select>
+	
+		<!--找值班人列表  -->
+	<select id="getUserList" resultType="com.huaxing.common.entity.UserEntity"> 
+		select userT.* from sys_user userT where userT.id IN
+				<foreach collection="handlerIdArr" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+				</foreach>
+	</select>
+	<!--统计  值班人：总的值班次数  -->
+	<select id="getPlanPersonSta" resultType="com.huaxing.bean.DutyStatistics">
+		select 
+		count(*) AS "planCount",
+		user_id AS "ondutyId",
+	    name AS "ondutyName"
+	   from (
+			   select 
+			   mission.user_id,
+			   userT.name
+				from  ngt_duty_mission mission
+				left join sys_user userT on userT.id=mission.user_id
+				WHERE mission.del_flag ='0'
+				<if test="companyId!=null and companyId!=''">
+				 AND mission.company_id=#{companyId}
+				</if>
+				AND <if test='dateTimeUnit=="0"'>DATE_FORMAT(mission.start_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(mission.start_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(mission.start_time,'%Y')</if>
+				<![CDATA[ >=#{sdateTimeParam}]]>  
+				AND
+				<if test='dateTimeUnit=="0"'>DATE_FORMAT(mission.start_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(mission.start_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(mission.start_time,'%Y')</if>
+				<![CDATA[ <=#{edateTimeParam} ]]>
+				<if test="userArr!=null">
+					AND  signIn.sign_person IN
+						<foreach collection="userArr" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+						</foreach>
+					</if> 
+				AND mission.user_id is not null
+				AND mission.user_id!='') TT
+		GROUP BY name
+	</select>
+	
+	<!--查询总的值班次数     人：总次数  -->
+	<select id="getPersonSta" resultType="com.huaxing.bean.DutySign">
+		select 
+		count(*) AS "ondutyCount",
+		sign_person AS "signPersonId",
+	    name AS "signPersonName"
+	   from (
+			   select 
+			   signIn.sign_person,
+			   userT.name
+				from  ngt_duty_sign signIn
+				left join sys_user userT on userT.id=signIn.sign_person
+				WHERE signIn.del_flag = '0'
+				AND signIn.signIn_status is not null
+				<!-- <if test="type!=null and type=='0'">
+				AND signIn.signIn_status='0'
+				</if>
+				<if test="type!=null and type=='1'">
+				AND signIn.signIn_status='1'
+				</if> -->
+				AND <if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+				<![CDATA[ >=#{sdateTimeParam}]]>  
+				AND
+				<if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+				<![CDATA[ <=#{edateTimeParam} ]]>
+				<if test="userArr!=null">
+					AND  signIn.sign_person IN
+						<foreach collection="userArr" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+						</foreach>
+				</if> 
+				<if test="companyId!=null and companyId!=''">
+				 AND signIn.company_id=#{companyId}
+				</if>
+				AND signIn.sign_person is not null
+				and signIn.sign_person!='') TT
+		GROUP BY name
+	</select>
+	
+	<!-- 统计  值班人：异常签到（值班）次数        signIn_status=1异常 -->
+		<select id="getUnNormalPersonSta" resultType="com.huaxing.bean.DutySign">
+		select 
+		count(*) AS "unnormalCount",
+		sign_person AS "signPersonId",
+	    name AS "signPersonName",
+	    signIn_status AS "signinStatus"
+	   from (
+			   select 
+			   signIn.sign_person,
+			   userT.name,
+			   signIn.signIn_status
+				from  ngt_duty_sign signIn
+				left join sys_user userT on userT.id=signIn.sign_person
+				WHERE signIn.del_flag = '0'
+				AND signIn.signIn_status='1'
+				AND <if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+				<![CDATA[ >=#{sdateTimeParam}]]>
+				AND
+				<if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+				<![CDATA[ <=#{edateTimeParam} ]]>
+				<if test="userArr!=null">
+					AND  signIn.sign_person IN
+						<foreach collection="userArr" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+						</foreach>
+				</if> 
+				<if test="companyId!=null and companyId!=''">
+				 AND signIn.company_id=#{companyId}
+				</if>
+				AND signIn.sign_person is not null
+				and signIn.sign_person!='') TT
+		GROUP BY name
+	</select>
+
+	<!-- 统计  值班人：正常签到（值班）次数 --> 
+		<select id="getNormalPersonSta" resultType="com.huaxing.bean.DutySign">
+		select 
+		count(*) AS "normalCount",
+		sign_person AS "signPersonId",
+	    name AS "signPersonName",
+	    signIn_status AS "signinStatus"
+	   from (
+			   select 
+			   signIn.sign_person,
+			   userT.name,
+			   signIn.signIn_status
+				from  ngt_duty_sign signIn
+				left join sys_user userT on userT.id=signIn.sign_person
+				WHERE signIn.del_flag = '0'
+				AND signIn.signIn_status='0'
+				AND <if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+				<![CDATA[ >=#{sdateTimeParam}]]>  
+				AND
+				<if test='dateTimeUnit=="0"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m-%d')</if>
+			    <if test='dateTimeUnit=="1"'>DATE_FORMAT(signIn.signIn_time,'%Y-%m')</if>
+			    <if test='dateTimeUnit=="2"'>DATE_FORMAT(signIn.signIn_time,'%Y')</if>
+				<![CDATA[ <=#{edateTimeParam} ]]>
+				<!-- <if test="handlerIdArr!=null">
+				AND  signIn.sign_person IN
+					<foreach collection="handlerIdArr" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+					</foreach>
+				</if>  -->
+				<if test="userArr!=null">
+					AND  signIn.sign_person IN
+						<foreach collection="userArr" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+						</foreach>
+				</if> 
+				<if test="companyId!=null and companyId!=''">
+				 AND signIn.company_id=#{companyId}
+				</if>
+				AND signIn.sign_person is not null
+				AND signIn.sign_person!='') TT
+		GROUP BY name
+	</select>
+
+</mapper>

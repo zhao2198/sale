@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TotalLoadRepository">
+	<!-- 查询总负荷原始数据，用于展示柱状图  王晓超 2018年7月24日15:26:08 -->
+	<select id="getTotalLoadBarOrLineEchart" resultType="com.huaxing.bean.TotalLoad">
+		SELECT
+			SUM(sum_active_power) AS 'totalLoad',
+			DATE_FORMAT(
+				acquisition_time,
+				'${dateFormatStr}'
+			) AS 'acquisition_time'
+		FROM
+			ngt_coll_device_data
+		WHERE
+			acquisition_time BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		AND company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		GROUP BY
+			DATE_FORMAT(acquisition_time, '${dateFormatStr}')
+	</select>
+	<!-- 获取最大负荷list数据  王晓超 2018年7月24日19:36:54 -->
+	<select id="getMaxLoadList" resultType="com.huaxing.bean.TotalLoad">
+		SELECT
+			q.*
+		FROM
+			(
+				SELECT
+					sum_active_power AS 'max_load',
+					DATE_FORMAT(
+						acquisition_time,
+						'${dateFormatStr}'
+					) AS 'acquisition_time',
+					acquisition_time AS 'max_date'
+				FROM
+					ngt_coll_device_data
+				WHERE
+					acquisition_time BETWEEN #{startDate}
+				AND #{endDate}
+				AND data_type = #{dataType}
+				AND company_id = #{companyId}
+				<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+				ORDER BY
+					sum_active_power DESC, max_date DESC LIMIT 10000000000
+			) q
+		GROUP BY
+			acquisition_time
+	</select>
+	<!-- 获取最小负荷list数据 -->
+	<select id="getMinLoadList" resultType="com.huaxing.bean.TotalLoad">
+		SELECT
+			q.*
+		FROM
+			(
+				SELECT
+					sum_active_power AS 'min_load',
+					DATE_FORMAT(
+						acquisition_time,
+						'${dateFormatStr}'
+					) AS 'acquisition_time',
+					acquisition_time AS 'min_date'
+				FROM
+					ngt_coll_device_data
+				WHERE
+					acquisition_time BETWEEN #{startDate}
+				AND #{endDate}
+				AND data_type = #{dataType}
+				AND company_id = #{companyId}
+				<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+				ORDER BY
+					sum_active_power ASC, min_date DESC LIMIT 10000000000
+			) q
+		GROUP BY
+			acquisition_time
+	</select>
+	<!-- 获取平均负荷list数据 -->
+	<select id="getAvgLoadList" resultType="com.huaxing.bean.TotalLoad">
+		SELECT
+			AVG(sum_active_power) AS 'avg_load',
+			DATE_FORMAT(
+				acquisition_time,
+				'${dateFormatStr}'
+			) AS 'acquisition_time'
+		FROM
+			ngt_coll_device_data
+		WHERE
+			acquisition_time BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		AND company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		GROUP BY
+			DATE_FORMAT(acquisition_time, '${dateFormatStr}')
+	</select>
+	
+	<!-- 最新获取平均负荷原始数据  王晓超 2018年10月18日15:52:28 -->
+	<select id="getDataList" resultType="com.huaxing.bean.TotalLoad">
+		SELECT
+			a.max_load,
+			a.min_load,
+			a.avg_load,
+			a.acquisition_time,
+			b.max_date,
+			c.min_date
+		FROM
+			(
+				SELECT
+					id,
+					max(max_value) AS 'max_load',
+					min(min_value) AS 'min_load',
+					avg(avg_value) AS 'avg_load',
+					DATE_FORMAT(create_date, '${dateFormatStr}') AS 'acquisition_time'
+				FROM
+					ngt_data_statistical
+				WHERE
+					column_flag = '${columnFlag}'
+				AND company_id = #{companyId}
+				AND data_type = #{dataType}
+				AND create_date BETWEEN #{startDate}
+				AND #{endDate}
+				<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+				GROUP BY
+					DATE_FORMAT(create_date, '${dateFormatStr}')
+			) AS a
+		INNER JOIN ngt_data_statistical b ON a.max_load = b.max_value
+		AND b.column_flag = '${columnFlag}'
+		AND b.company_id = #{companyId}
+		AND b.data_type = #{dataType}
+		AND b.create_date BETWEEN #{startDate}
+		AND #{endDate}
+		<if test="equipmentId != null and equipmentId!=''">AND b.equipment_id = #{equipmentId}</if>
+		INNER JOIN ngt_data_statistical c ON a.min_load = c.min_value
+		AND c.column_flag = '${columnFlag}'
+		AND c.company_id = #{companyId}
+		AND c.data_type = #{dataType}
+		AND c.create_date BETWEEN #{startDate}
+		AND #{endDate}
+		<if test="equipmentId != null and equipmentId!=''">AND c.equipment_id = #{equipmentId}</if>
+	</select>
+</mapper>

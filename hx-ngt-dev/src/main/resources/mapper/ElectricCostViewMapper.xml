@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.ElectricCostViewRepository">
+	
+	<!-- 获取尖峰平谷电费原始数据  王晓超 2018年7月30日15:18:52 -->
+	<select id="getElectricCostViewDataList" resultType="com.huaxing.bean.ElectricCostView">
+		SELECT
+			sum(sharp_cost) AS 'sharp_cost',
+			sum(peak_cost) AS 'peak_cost',
+			sum(flat_cost) AS 'flat_cost',
+			sum(valley_cost) AS 'valley_cost',
+			sum(total_cost) AS 'total_cost',
+			DATE_FORMAT(create_date,'${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}')
+	</select>
+	<!-- 获取尖峰平谷饼图数据  王晓超 2018年7月30日15:25:04 -->
+	<select id="getPieData" resultType="com.huaxing.bean.ElectricCostView">
+		SELECT
+			sum(sharp_cost) AS 'sharp_cost',
+			sum(peak_cost) AS 'peak_cost',
+			sum(flat_cost) AS 'flat_cost',
+			sum(valley_cost) AS 'valley_cost',
+			sum(total_cost) AS 'total_cost',
+			DATE_FORMAT(create_date,'${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_power_cost
+		<where>
+			<if test="companyId != null">company_id = #{companyId}</if>
+			<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+			AND create_date BETWEEN #{startDate}
+			AND #{endDate}
+			AND data_type = #{dataType}
+		</where>
+	</select>
+	<!-- 获取基本力调电费原始数据  王晓超 2018年7月31日11:21:26 -->
+	<select id="getBasicAndForceCostList" resultType="com.huaxing.bean.ElectricCostView">
+		SELECT
+			sum(force_cost) AS 'force_cost',
+			sum(basic_cost) AS 'basic_cost',
+			sum(power_cost) AS 'power_cost',
+			DATE_FORMAT(create_date, '${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_force_electric_cost
+		WHERE
+		company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}')
+	
+	</select>
+	<!--获取基本力调电费饼图数据  王晓超 2018年7月31日12:00:19  -->
+	<select id="getBasicAndForceData" resultType="com.huaxing.bean.ElectricCostView">
+		SELECT
+			sum(force_cost) AS 'force_cost',
+			sum(basic_cost) AS 'basic_cost',
+			sum(power_cost) AS 'power_cost',
+			DATE_FORMAT(create_date, '${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_force_electric_cost
+		<where>
+			<if test="companyId != null">company_id = #{companyId}</if>
+			<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+			AND create_date BETWEEN #{startDate}
+			AND #{endDate}
+			AND data_type = #{dataType}
+		</where>
+	</select>
+	<!-- 获取基本电费列表数据  王晓超 2018年7月31日19:05:05 -->
+	<select id="getBasicCostList" resultType="com.huaxing.bean.ElectricCostView">
+		SELECT
+			sum(cost) AS 'basic_cost',
+			type AS 'basic_cost_type',
+			DATE_FORMAT(create_date, '${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_basic_electric_cost
+		WHERE
+		company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}')
+	</select>
+	<!-- 获取力调电费列表数据   王晓超 2018年7月31日19:12:42 -->
+	<select id="getForceCostList" resultType="com.huaxing.bean.ElectricCostView">
+		SELECT
+			sum(force_cost) AS 'force_cost',
+			DATE_FORMAT(create_date, '${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_force_electric_cost
+		WHERE
+		company_id = #{companyId}
+		<if test="equipmentId != null and equipmentId!=''">AND equipment_id = #{equipmentId}</if>
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}')
+	</select>
+</mapper>

@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.RepairFormRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="com.huaxing.bean.RepairForm" id="repairFormMap">
+		<result property="id" column="id" />
+		<result property="handlerId" column="handler_id" />
+		<result property="companyId" column="company_id" />
+		<result property="equipmentName" column="equipment_name" />
+		<result property="equipmentId" column="equipment_id" />
+		<result property="buildingId" column="building_id" />
+		<result property="organizationId" column="organization_id" />
+		<result property="categoryId" column="category_id" />
+		<result property="distributionRoomId" column="distribution_room_id" />
+		<result property="code" column="code" />
+		<result property="type" column="type" />
+		<result property="urgency" column="urgency" />
+		<result property="historyHopeTime" column="history_hope_time" />
+		<result property="hopeTime" column="hope_time" />
+		<result property="url" column="url" />
+		<result property="findPeople" column="find_people" />
+		<result property="isTurnDown" column="is_turn_down" />
+		<result property="findTime" column="find_time" />
+		<result property="state" column="state" />
+		<result property="repairResult" column="repair_result" />
+		<result property="createBy" column="create_by" />
+		<result property="createDate" column="create_date" />
+		<result property="updateBy" column="update_by" />
+		<result property="updateDate" column="update_date" />
+		<result property="remarks" column="remarks" />
+		<result property="enableFlag" column="enable_flag" />
+		<result property="recordIsExitsFlag" column="record_is_exits_flag" />
+		<result property="publishFlag" column="publish_flag" />
+	</resultMap>
+
+	<resultMap type="com.huaxing.bean.RepairForm" id="extenRepairFormMap" extends="repairFormMap">
+		<result property="repairResult" column="repair_result" />
+		<result property="handName" column="hand_name" />
+		<result property="createName" column="create_name" />
+	</resultMap>
+
+
+
+	<select id="get" resultMap="extenRepairFormMap">
+		SELECT 
+		  rf.id,
+		  rf.`handler_id`,
+		  rf.`company_id`,
+		  rf.`organization_id`,
+		  rf.`category_id`,
+		  rf.`distribution_room_id`,
+		  rf.`code`,
+		  rf.`type`,
+		  rf.find_people,
+		  rf.`urgency`,
+		  rf.`hope_time`,
+		  rf.`url`,
+		  rf.`find_people`,
+		  rf.`find_time`,
+		  rf.`state`,
+		  rf.`remarks`,
+		   rf.`repair_result`,
+		  rf.hope_time,
+		  rf.history_hope_time,
+		  rf.equipment_id,
+		  rf.equipment_name,
+		  hu.`name` AS hand_name 
+		FROM
+		  `ngt_repair_form` rf 
+		  LEFT JOIN sys_user hu ON hu.`id` = rf.`handler_id` 
+		WHERE rf.id = #{id} 
+	</select>
+
+	<select id="queryList" resultMap="extenRepairFormMap" parameterType="com.huaxing.bean.RepairForm">
+		SELECT 
+		  rf.id,
+		  rf.`handler_id`,
+		  rf.`company_id`,
+		  rf.`organization_id`,
+		  rf.`category_id`,
+		  rf.`distribution_room_id`,
+		  rf.`code`,
+		  rf.`type`,
+		  rf.`urgency`,
+		  rf.`hope_time`,
+		  rf.`url`,
+		  rf.`find_people`,
+		  rf.`find_time`,
+		  rf.`state`,
+		  rf.`remarks`,
+		  rf.hope_time,
+		  rf.history_hope_time,
+		  rf.`repair_result`,
+		  rf.equipment_id,
+		  rf.equipment_name,
+		  rf.create_date,
+		  u.`name` AS create_name,
+		  hu.`name` AS hand_name 
+		FROM
+		  `ngt_repair_form` rf 
+		  LEFT JOIN sys_user u ON u.`id` = rf.`create_by` 
+		  LEFT JOIN sys_user hu ON hu.`id` = rf.`handler_id` 
+		WHERE rf.publish_flag = #{publishFlag}
+		  AND rf.company_id LIKE CONCAT(#{companyId}, '%') 
+		<if test="code != null and code != ''">and rf.code like concat('%', #{code}, '%') </if>
+		<if test="equipmentName!=null and equipmentName!=''">and rf.equipment_name like concat('%', #{equipmentName},'%')  </if>
+		<if test="equipmentId!=null">and rf.`equipment_id` = #{equipmentId}</if>
+		<if test="urgency!=null and urgency!=''">and rf.urgency=#{urgency} </if>
+		<if test="state!=null and state!=''">and rf.state=#{state} </if>
+		<if test="repairResult!=null and repairResult!=''">AND rf.repair_result=#{repairResult} </if>
+		<if test="type!=null and type!=''">AND rf.type=#{type} </if>
+		<if test="startDate != null"><![CDATA[ AND rf.create_date >= #{startDate} ]]></if>
+		<if test="endDate != null"><![CDATA[ AND rf.create_date <= #{endDate} ]]></if>
+		
+		<if test="handlerId!=null and handlerId!=''">AND rf.handler_id=#{handlerId} </if>
+		
+		ORDER BY rf.create_date DESC
+	</select>
+
+	<update id="updateRecordIsNotExist">
+		UPDATE ngt_repair_form 
+		SET 
+			record_is_exits_flag='0'
+		WHERE 
+			id=#{id}
+	</update>
+
+	<update id="updateHopeTime">
+		UPDATE ngt_repair_form 
+		SET 
+			hope_time=#{hopeTime}
+		WHERE
+			id=#{id}
+	</update>
+	
+	<update id="updateResult">
+		UPDATE ngt_repair_form 
+		SET 
+		<if test="state != null">state = #{state}, </if>
+			repair_result=#{repairResult}
+		WHERE
+			id=#{id}
+	</update>
+
+
+	<insert id="save" parameterType="com.huaxing.bean.RepairForm">
+		insert into ngt_repair_form
+		(
+			`id`,
+			`handler_id`,
+			`company_id`,
+			`equipment_name`,
+			`equipment_id`,
+			`building_id`,
+			`organization_id`,
+			`category_id`,
+			`distribution_room_id`,
+			`code`,
+			`type`,
+			`urgency`,
+			`history_hope_time`,
+			`hope_time`,
+			`url`,
+			`find_people`,
+			`is_turn_down`,
+			`find_time`,
+			`state`,
+			`create_by`,
+			`create_date`,
+			`update_by`,
+			`update_date`,
+			`remarks`,
+			`enable_flag`,
+			`record_is_exits_flag`,
+			`publish_flag`
+		)
+		values
+		(
+			#{id},
+			#{handlerId},
+			#{companyId},
+			#{equipmentName},
+			#{equipmentId},
+			#{buildingId},
+			#{organizationId},
+			#{categoryId},
+			#{distributionRoomId},
+			#{code},
+			#{type},
+			#{urgency},
+			#{historyHopeTime},
+			#{hopeTime},
+			#{url},
+			#{findPeople},
+			#{isTurnDown},
+			#{findTime},
+			#{state},
+			#{createBy},
+			#{createDate},
+			#{updateBy},
+			#{updateDate},
+			#{remarks},
+			#{enableFlag},
+			#{recordIsExitsFlag},
+			#{publishFlag}
+		)
+	</insert>
+
+	<update id="update" parameterType="com.huaxing.bean.RepairForm">
+		update ngt_repair_form
+		<set>
+			<if test="handlerId != null">`handler_id` = #{handlerId}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="equipmentName != null">`equipment_name` = #{equipmentName}, </if>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId}, </if>
+			<if test="buildingId != null">`building_id` = #{buildingId}, </if>
+			<if test="organizationId != null">`organization_id` = #{organizationId}, </if>
+			<if test="categoryId != null">`category_id` = #{categoryId}, </if>
+			<if test="distributionRoomId != null">`distribution_room_id` = #{distributionRoomId}, </if>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="urgency != null">`urgency` = #{urgency}, </if>
+			<if test="historyHopeTime != null">`history_hope_time` = #{historyHopeTime}, </if>
+			<if test="hopeTime != null">`hope_time` = #{hopeTime}, </if>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="findPeople != null">`find_people` = #{findPeople}, </if>
+			<if test="isTurnDown != null">`is_turn_down` = #{isTurnDown}, </if>
+			<if test="findTime != null">`find_time` = #{findTime}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+			<if test="recordIsExitsFlag != null">`record_is_exits_flag` = #{recordIsExitsFlag}, </if>
+			<if test="publishFlag != null">`publish_flag` = #{publishFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+
+
+	<delete id="delete">
+		delete from ngt_repair_form where id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from ngt_repair_form where id in
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<select id="queryMaterialRecordList" resultType="com.huaxing.bean.RepairRecordEquipmentStockRecord">
+		SELECT 
+		  stockRecord.id,
+		  equipment.name,
+		  equipment.code,
+		  equipment.type,
+		  stockRecord.stock_num,
+		  stockRecord.desciption,
+		  repairRecord.create_date
+		FROM
+		  ngt_repair_record_equipment_stock_record stockRecord 
+		  LEFT JOIN ngt_repair_record repairRecord 
+		    ON repairRecord.id = stockRecord.record_id 
+		  LEFT JOIN ngt_equipment_house equipment 
+		    ON equipment.id = stockRecord.equipment_id 
+		  LEFT JOIN sys_user createBy 
+		    ON createBy.id = stockRecord.create_by 
+		WHERE repairRecord.repair_form_id = #{repairFormId}
+		ORDER BY stockRecord.create_date DESC
+	</select>
+</mapper>

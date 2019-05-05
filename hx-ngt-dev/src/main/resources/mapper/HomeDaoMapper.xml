@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.HomeRepository">
+	<!-- 查询去年同期月份电量  王晓超 2018年8月1日17:23:24 -->
+	<select id="getElectricQuantityByStartDateAndEndDate" resultType="java.math.BigDecimal">
+		SELECT
+			sum(total_electric_quantity) AS 'total_electric_quantity'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+	</select>
+	<!-- 统计公司下的表记  王晓超 2018年8月1日17:29:38 -->
+	<select id="getBiaoJiCount" resultType="int">
+		SELECT
+			count(*) count
+		FROM
+			ngt_equipment
+		WHERE
+			type = '4'
+			AND
+			company_id = #{companyId}
+	</select>
+	<!-- 查询电量原始数据  根据日期分组  用于首页电量柱状图  王晓超 2018年8月1日17:35:00 -->
+	<select id="getElectricQuantityEchartData" resultType="com.huaxing.bean.ElectricQuantity">
+		SELECT
+			sum(total_electric_quantity) AS 'total_electric_quantity',
+			DATE_FORMAT(create_date,'${dateFormatStr}') AS 'acquisition_time'
+		FROM
+			ngt_power_cost
+		WHERE
+		company_id = #{companyId}
+		AND create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND data_type = #{dataType}
+		GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}')
+	</select>
+	<!-- 查询当月告警总数  王晓超 2018年8月2日15:09:42  -->
+	<select id="getTotalAlarmFaultCount" resultType="int">
+			SELECT
+			count(*) count FROM ngt_alarm_record
+		WHERE
+			company_id = #{companyId}
+			AND alarm_time BETWEEN #{startDate}
+			AND #{endDate}
+	</select>
+	<!-- 统计当月告警未确认、已确认数量   王晓超 2018年8月2日15:14:12 -->
+	<select id="getAlarmFaultCount" resultType="int">
+			SELECT
+			count(*) count FROM ngt_alarm_fault
+		<where>
+			company_id = #{companyId}
+			AND alarm_time BETWEEN #{startDate}
+			AND #{endDate}
+			<if test="countType != null and countType != '' ">
+				AND alarm_state = #{countType}
+			</if>
+		</where>
+	</select>
+	<!-- 统计巡检各项数据  王晓超 2018年8月2日15:18:10 -->
+	<select id="getPolling" resultType="int">
+		SELECT
+			count(*) count FROM ngt_patrol_mission
+		<where>
+			company_id = #{companyId}
+			AND create_date BETWEEN #{startDate}
+			AND #{endDate}
+			<if test="countType != null and countType != '' ">
+				AND state = #{countType}
+			</if>
+		</where>
+	</select>
+	<!-- 统计定保单各项数量  王晓超 2018年8月2日15:19:49 -->
+	<select id="getProtect" resultType="int">
+		SELECT
+			count(*) count FROM ngt_periodic_maintenance_mission
+		<where>
+			company_id = #{companyId}
+			AND create_date BETWEEN #{startDate}
+			AND #{endDate}
+			<if test="countType != null and countType != '' ">
+				AND state = #{countType}
+			</if>
+		</where>
+	</select>
+	<!-- 统计修复单各项数量  王晓超 2018年8月2日15:22:48 -->
+	<select id="getRepairCount" resultType="int">
+		SELECT
+			count(*) count FROM ngt_repair_form
+		<where>
+			company_id = #{companyId}
+			AND create_date BETWEEN #{startDate}
+			AND #{endDate}
+			<if test="countType != null and countType != '' ">
+				AND state = #{countType}
+			</if>
+		</where>
+	</select>
+</mapper>

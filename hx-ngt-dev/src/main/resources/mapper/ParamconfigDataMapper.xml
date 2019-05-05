@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.ParamconfigDataRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.ParamconfigData" id="paramconfigDataMap">
+        <result property="id" column="id"/>
+        <result property="projectCode" column="project_code"/>
+        <result property="paramConfigData" column="param_config_data"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="enableFlag" column="enable_flag"/>
+       
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.ParamconfigData">
+		select * from ngt_paramconfig_data where id = #{value}
+	</select>
+
+	<select id="findByProjectCode" resultType="ParamconfigData" >
+		SELECT 
+			a.*
+		FROM ngt_paramconfig_data a
+		<where>
+			a.company_id = #{companyId}
+			and a.project_code=#{projectCode}
+		</where>
+	</select>
+	
+	 
+	<insert id="save" parameterType="com.huaxing.bean.ParamconfigData">
+		insert into ngt_paramconfig_data
+		(
+			`id`, 
+			`project_code`, 
+			`param_config_data`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{projectCode}, 
+			#{paramConfigData}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.ParamconfigData">
+		update ngt_paramconfig_data 
+		<set>
+			<if test="projectCode != null">`project_code` = #{projectCode}, </if>
+			<if test="paramConfigData != null">`param_config_data` = #{paramConfigData}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag} </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_paramconfig_data where id = #{value}
+	</delete>
+	<delete id="deleteConfig" parameterType="com.huaxing.bean.ParamconfigData">
+		delete from ngt_paramconfig_data where project_code = #{projectCode} and company_id = #{companyId}
+	</delete>
+	<delete id="deleteBatchByProjectCode">
+		delete from ngt_paramconfig_data where project_code in 
+		<foreach item="projectCode" collection="list" open="(" separator="," close=")">
+			#{projectCode}
+		</foreach>
+	</delete>
+
+</mapper>

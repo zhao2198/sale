@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.CollectorConfigureRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.CollectorConfigure" id="collectorConfigureMap">
+        <result property="id" column="id"/>
+        <result property="collector" column="collector"/>
+        <result property="acquisitionCard" column="acquisition_card"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.CollectorConfigure">
+		select * from ngt_collector_configure where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.CollectorConfigure">
+		SELECT 
+			a.*,
+			acquisitionCard.name AS "acquisitionCardName",
+			acquisitionCard.type AS "acquisitionCardType"
+		FROM ngt_collector_configure a
+		LEFT JOIN ngt_acquisition_card acquisitionCard ON acquisitionCard.id = a.acquisition_card
+			where 
+			 a.collector=#{collector}
+       
+	</select>
+	<select id="queryAcquisitioncardChannelById" resultType="java.lang.String">
+		SELECT a.id FROM `ngt_acquisitioncard_channel` a WHERE a.`collector_configure`=#{id}
+		
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.CollectorConfigure">
+		insert into ngt_collector_configure
+		(
+			`id`, 
+			`collector`, 
+			`acquisition_card`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{collector}, 
+			#{acquisitionCard}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.CollectorConfigure">
+		update ngt_collector_configure 
+		<set>
+			<if test="collector != null">`collector` = #{collector}, </if>
+			<if test="acquisitionCard != null">`acquisition_card` = #{acquisitionCard}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_collector_configure where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_collector_configure where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

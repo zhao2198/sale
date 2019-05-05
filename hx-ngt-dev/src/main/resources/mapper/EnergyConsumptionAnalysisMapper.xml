@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EnergyConsumptionAnalysisRepository">
+	
+	<select id="queryTotalEnergy"   resultType="java.math.BigDecimal">
+		   select SUM(a.current_electr) from ngt_coll_device_data a
+		   LEFT JOIN ngt_equipment b ON b.id=a.equipment_id 
+		    where  
+			a.company_id = #{companyId}
+		    and a.acquisition_time between #{queryDateStart} and #{queryDateEnd}
+		    AND b.type ='1'
+	</select>
+	
+	<select id="getEquipmentTypeEnergyList" resultType="com.huaxing.bean.EnergyConsumptionAnalysis">
+		 SELECT 
+		    a.id,
+			a.name AS name,
+			SUM(c.total_cost) AS cost,
+			SUM(c.total_electric_quantity) AS VALUE
+			 FROM ngt_equipment_type a 
+			INNER JOIN ngt_equipment b 
+			  ON b.${equipmentTypeAttribute}= a.id AND b.type ='1'
+			INNER JOIN ngt_power_cost c 
+			  ON c.equipment_id = b.id 
+			WHERE 
+			  a.company_id=#{companyId} 
+			  and c.create_date BETWEEN  #{queryDateStart} and #{queryDateEnd}
+			GROUP BY a.name
+	</select>
+	
+	<select id="queryOrgEnergyList" resultType="com.huaxing.bean.EnergyConsumptionAnalysis">
+		 SELECT 
+		  a.id,
+		  a.name,
+		  SUM(c.total_cost) AS cost,
+		  SUM(c.total_electric_quantity) AS VALUE
+		FROM
+		  sys_office a 
+		  INNER JOIN ngt_equipment b 
+		    ON b.organization = a.id AND b.type ='1'
+		  INNER JOIN ngt_power_cost c 
+		    ON c.equipment_id = b.id 
+		WHERE 
+		  	a.company_id=#{companyId} 
+			and c.create_date BETWEEN   #{queryDateStart} and #{queryDateEnd}
+		GROUP BY a.name
+	</select>
+	<select id="queryAvgLoad"  resultType="com.huaxing.bean.EnergyConsumptionAnalysis">
+	
+			SELECT 
+			  a.`equipment_id`,
+			  AVG(a.sum_active_power) AS avgLoad 
+			FROM
+			  `ngt_coll_device_data` a 
+			WHERE a.company_id = #{companyId}
+			  AND a.acquisition_time BETWEEN  #{queryDateStart} and #{queryDateEnd}
+			GROUP BY a.`equipment_id` 
+	
+		<!--  SELECT 
+		  AVG(a.sum_active_power) as avgLoad		  
+		FROM
+		  ngt_coll_device_data a 
+		  WHERE  
+		  a.company_id=#{companyId} 
+		  and a.acquisition_time BETWEEN  #{queryDateStart} and #{queryDateEnd}
+		  AND a.equipment_id =#{equipmentId} -->
+		 
+	</select>
+	
+</mapper>

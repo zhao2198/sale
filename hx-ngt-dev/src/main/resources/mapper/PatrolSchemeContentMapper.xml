@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.PatrolSchemeContentRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.PatrolSchemeContent" id="patrolSchemeContentMap">
+        <result property="id" column="id"/>
+        <result property="patrolSchemeId" column="patrol_scheme_id"/>
+        <result property="sort" column="sort"/>
+        <result property="pid" column="pid"/>
+        <result property="locationId" column="location_id"/>
+        <result property="locationName" column="location_name"/>
+        <result property="time" column="time"/>
+        <result property="equipmentId" column="equipment_id"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.PatrolSchemeContent">
+		select * from ngt_patrol_scheme_content where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.PatrolSchemeContent">
+		select * from ngt_patrol_scheme_content
+       
+	</select>
+	
+ 
+	 
+	<insert id="saveContent" parameterType="com.huaxing.bean.PatrolScheme">
+		insert into ngt_patrol_scheme_content
+		(
+			`id`, 
+			`patrol_scheme_id`, 
+			`sort`, 
+			`location_id`, 
+			`location_name`, 
+			`time`, 
+			`equipment_id`
+		)
+		values
+		<foreach collection="contentList" item="content" separator=",">
+		(
+			#{content.id}, 
+			#{id}, 
+			#{content.sort}, 
+			#{content.locationId}, 
+			#{content.locationName}, 
+			#{content.time}, 
+			#{content.equipmentId}
+		)
+		</foreach>
+	</insert>
+	<insert id="save" parameterType="com.huaxing.bean.PatrolSchemeContent">
+		insert into ngt_patrol_scheme_content
+		(
+			`id`, 
+			`patrol_scheme_id`, 
+			`sort`, 
+			`pid`, 
+			`location_id`, 
+			`location_name`, 
+			`time`, 
+			`equipment_id`
+		)
+		values
+		(
+			#{id}, 
+			#{patrolSchemeId}, 
+			#{sort}, 
+			#{pid}, 
+			#{locationId}, 
+			#{locationName}, 
+			#{time}, 
+			#{equipmentId}
+		)
+	</insert>
+	
+	<insert id="saveBatch">
+		insert into ngt_patrol_scheme_content
+		(
+			`id`, 
+			`patrol_scheme_id`, 
+			`sort`, 
+			`pid`, 
+			`location_id`, 
+			`location_name`, 
+			`time`, 
+			`equipment_id`
+		)
+		values
+		<foreach collection="list" separator="," item="item">
+		(
+			#{item.id}, 
+			#{item.patrolSchemeId}, 
+			#{item.sort}, 
+			#{item.pid}, 
+			#{item.locationId}, 
+			#{item.locationName}, 
+			#{item.time}, 
+			#{item.equipmentId}
+		)
+		</foreach>
+		
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.PatrolSchemeContent">
+		update ngt_patrol_scheme_content 
+		<set>
+			<!-- <if test="patrolSchemeId != null">`patrol_scheme_id` = #{patrolSchemeId}, </if> -->
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="pid != null">`pid` = #{pid}, </if>
+			<if test="locationId != null">`location_id` = #{locationId}, </if>
+			<if test="locationName != null">`location_name` = #{locationName}, </if>
+			<if test="time != null">`time` = #{time}, </if>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteByPatrolId">
+		delete from ngt_patrol_scheme_content where patrol_scheme_id = #{value}
+	</delete>
+	
+	<delete id="delete">
+		delete from ngt_patrol_scheme_content where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_patrol_scheme_content where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

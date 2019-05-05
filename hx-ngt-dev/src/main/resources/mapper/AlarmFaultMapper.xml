@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.AlarmFaultRepository">
+
+
+	<!--查看告警列表  王晓超 2018年7月11日12:01:04  -->
+	<select id="getAlarmFaultList" resultType="com.huaxing.bean.AlarmFault">
+		SELECT
+			a.*,
+			c.`name` AS alarmTypeName,
+			b.`grade` AS alarmGradeName,
+			b.`color`,
+			b.`important_level`,
+			b.`sound`,
+			d.`name` AS equipmentName
+		FROM
+			ngt_alarm_fault a
+			INNER JOIN `ngt_alarm_grade` b ON b.`grade`=a.`alarm_grade_id` AND b.`company_id`=#{companyId}
+			INNER JOIN `ngt_alarm_type` c ON c.`tid`=a.`alarm_type_id` AND c.`company_id`=#{companyId}
+			INNER JOIN `ngt_equipment` d ON d.`id`=a.`equipment_id`  
+		<where>
+			a.company_id = #{companyId}
+			AND a.alarm_state = #{alarmState} 
+			<if test="startDate != null"><![CDATA[AND a.alarm_time >= #{startDate}]]> </if>
+			<if test="endDate != null"><![CDATA[AND a.alarm_time >= #{endDate}]]></if>
+			<if test="equipmentId != null and equipmentId != '' ">AND a.equipment_id = #{equipmentId}</if>
+			<if test="alarmTypeId != null and alarmTypeId != '' ">AND a.alarm_type_id = #{alarmTypeId}</if>
+			<if test="alarmGradeId != null and alarmGradeId != '' ">AND a.alarm_grade_id = #{alarmGradeId}</if>
+		</where>
+		ORDER BY a.`alarm_time` DESC
+	</select>
+	 <!-- 确认告警故障  王晓超 2018年7月11日16:19:09 -->
+	<update id="confirmAlarmFault">
+		update ngt_alarm_fault
+		<set>
+			alarm_state = '1',
+			update_by = #{updateBy},
+			update_date = #{updateDate}
+		</set>
+		WHERE id = #{id}
+	</update>
+	<!-- 屏蔽告警故障  王晓超 2018年7月11日16:19:39 -->
+	<update id="shieldingAlarmFault">
+		update ngt_alarm_fault
+		<set>
+			alarm_state = '2',
+			shielding_reason = #{shieldingReason},
+			update_by = #{updateBy},
+			update_date = #{updateDate}
+		</set>
+		WHERE id = #{id}
+	</update>
+	<!-- 取消已屏蔽的告警故障  王晓超 2018年7月11日16:45:47 -->
+	<update id="cancelShieldingAlarmFault">
+		update ngt_alarm_fault
+		<set>
+			alarm_state = '3',
+			shielding_reason = #{shieldingReason},
+			update_by = #{updateBy},
+			update_date = #{updateDate}
+		</set>
+		WHERE id = #{id}
+	</update>
+	<!-- 查看告警记录历史列表  王晓超 2018年7月12日09:38:12 -->
+	<select id="getAlarmFaultHistoryList" resultType="com.huaxing.bean.AlarmFault">
+		SELECT
+			a.*,
+			c.`name` AS alarmTypeName,
+			b.`grade` AS alarmGradeName,
+			b.`color`,
+			d.`name` AS equipmentName
+		FROM
+			ngt_alarm_record a
+			INNER JOIN `ngt_alarm_grade` b ON b.`grade`=a.`alarm_grade` AND b.`company_id`=#{companyId}
+			INNER JOIN `ngt_alarm_type` c ON c.`tid`=a.`alarm_type_id` AND c.`company_id`=#{companyId}
+			INNER JOIN `ngt_equipment` d ON d.`id`=a.`equipment_id`
+		<where>
+			a.company_id = #{companyId}
+			<if test="alarmTime != null"><![CDATA[AND alarm_time >= #{alarmTime}]]></if>
+			<if test="alarmTime != null"><![CDATA[AND alarm_time <= #{alarmTime}]]></if>
+			<if test="equipmentId != null and equipmentId != '' ">AND equipment_id = #{equipmentId}</if>
+			<if test="alarmTypeId != null and alarmTypeId != '' ">AND alarm_type_id = #{alarmTypeId}</if>
+			<if test="alarmGradeId != null and alarmGradeId != '' ">AND alarm_grade = #{alarmGradeId}</if>
+		</where>
+		ORDER BY  a.alarm_time DESC
+	</select>
+	<!-- 获取告警历史记录echart图的数据  王晓超 2018年7月13日09:25:49 -->
+	<select id="getAlarmFaultHistoryEchart" resultType="com.huaxing.bean.AlarmFault">
+		SELECT
+			count(id) AS 'alarmNum',
+			DATE_FORMAT(alarm_time, '${formatStr}') AS 'alarmTimeStr'
+		FROM
+			ngt_alarm_record
+		<where>
+			<if test="alarmTime != null"><![CDATA[AND alarm_time >= #{alarmTimeStart}]]></if>
+			<if test="alarmTime != null"><![CDATA[AND alarm_time <= #{alarmTimeEnd}]]></if>
+			<if test="companyId != null and companyId != '' ">AND company_id = #{companyId}</if>
+			<if test="equipmentId != null and equipmentId != '' ">AND equipment_id = #{equipmentId}</if>
+			<if test="alarmTypeId != null and alarmTypeId != '' ">AND alarm_type_id = #{alarmTypeId}</if>
+			<if test="alarmGradeId != null and alarmGradeId != '' ">AND alarm_grade = #{alarmGradeId}</if>
+		</where>
+		GROUP BY
+			DATE_FORMAT(alarm_time, '${formatStr}')
+	</select>
+	<update id="updateNewFormState">
+		UPDATE `ngt_alarm_fault` 
+		 SET  
+		  `newForm_state`=#{newformState}
+		WHERE  
+		`id`=#{id}
+	</update>
+	<select id="getAlarmNum" resultType="string">
+		SELECT 
+		  COUNT(*) 
+		FROM
+		  `ngt_alarm_fault` 
+		WHERE company_id = #{companyId}
+		  AND alarm_state = #{alarmState} 
+	</select>
+	
+</mapper>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentHouseRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.EquipmentHouse" id="equipmentHouseMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="code" column="code"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="type" column="type"/>
+        <result property="manufacturedate" column="manufacturedate"/>
+        <result property="purchaseyear" column="purchaseyear"/>
+        <result property="price" column="price"/>
+        <result property="desciption" column="desciption"/>
+        <result property="picture" column="picture"/>
+        <result property="category" column="category"/>
+        <result property="stocknumber" column="stocknumber"/>
+        <result property="minStocknumber" column="min_stocknumber"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.EquipmentHouse">
+		select * from ngt_equipment_house where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.EquipmentHouse">
+		select * from ngt_equipment_house a
+       <where>
+       	a.del_flag='0'
+      	and a.company_id=#{companyId}
+     	    <if test="code != null and code != ''">
+				AND a.code LIKE concat('%',#{code},'%')
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					concat('%',#{name},'%')
+			</if>
+			<if test="type != null and type != ''">
+				AND a.type LIKE 
+					concat('%',#{type},'%')
+			</if>
+			<if test="beginPurchaseyear != null and endPurchaseyear != null and beginPurchaseyear != '' and endPurchaseyear != ''">
+				AND DATE_FORMAT(a.purchaseyear, '%Y-%m-%d')  BETWEEN DATE_FORMAT( #{beginPurchaseyear}, '%Y-%m-%d')  AND DATE_FORMAT(#{endPurchaseyear}, '%Y-%m-%d')
+			</if>
+			<if test="category != null and category != ''">
+				AND a.category LIKE concat('%',#{category},'%')
+			</if>
+			
+       </where>
+	</select>
+	
+	<insert id="save" parameterType="com.huaxing.bean.EquipmentHouse">
+		insert into ngt_equipment_house
+		(
+			`id`, 
+			`name`, 
+			`code`, 
+			`manufacturer`, 
+			`type`, 
+			`manufacturedate`, 
+			`purchaseyear`, 
+			`price`, 
+			`desciption`, 
+			`picture`, 
+			`category`, 
+			`stocknumber`, 
+			`min_stocknumber`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{name}, 
+			#{code}, 
+			#{manufacturer}, 
+			#{type}, 
+			#{manufacturedate}, 
+			#{purchaseyear}, 
+			#{price}, 
+			#{desciption}, 
+			#{picture}, 
+			#{category}, 
+			#{stocknumber}, 
+			#{minStocknumber}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks},
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.EquipmentHouse">
+		update ngt_equipment_house 
+		<set>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="manufacturer != null">`manufacturer` = #{manufacturer}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="manufacturedate != null">`manufacturedate` = #{manufacturedate}, </if>
+			<if test="purchaseyear != null">`purchaseyear` = #{purchaseyear}, </if>
+			<if test="price != null">`price` = #{price}, </if>
+			<if test="desciption != null">`desciption` = #{desciption}, </if>
+			<if test="picture != null">`picture` = #{picture}, </if>
+			<if test="category != null">`category` = #{category}, </if>
+			<if test="stocknumber != null">`stocknumber` = #{stocknumber}, </if>
+			<if test="minStocknumber != null">`min_stocknumber` = #{minStocknumber}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="deleteBatchByLogic">
+		update ngt_equipment_house set del_flag = '1' where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</update>
+	
+	<select id="isExists" resultType="int">
+		select count(*)
+		 from 
+		 ngt_equipment_house a
+		 <where>
+		 	a.del_flag ='0'
+			and a.company_id =#{companyId}
+			and a.code=#{code}
+			<if test="id != null and id !=''">
+			and a.id !=#{id}
+			</if>
+		 </where>
+	</select>
+	<delete id="delete">
+		delete from ngt_equipment_house where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_equipment_house where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

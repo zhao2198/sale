@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TodoCenterOperationRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.TodoCenterOperation" id="todoCenterOperationMap">
+        <result property="id" column="id"/>
+        <result property="todoId" column="todo_id"/>
+        <result property="operate" column="operate"/>
+        <result property="sort" column="sort"/>
+        <result property="labelName" column="label_name"/>
+        <result property="type" column="type"/>
+        <result property="param" column="param"/>
+        <result property="style" column="style"/>
+        <result property="size" column="size"/>
+        <result property="nextStep" column="next_step"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.TodoCenterOperation">
+		select * from ngt_todo_center_operation where id = #{value}
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.TodoCenterOperation">
+		insert into ngt_todo_center_operation
+		(
+			`id`, 
+			`todo_id`, 
+			`operate`, 
+			`sort`, 
+			`label_name`, 
+			`type`, 
+			`param`, 
+			`style`, 
+			`size`, 
+			`next_step`
+		)
+		values
+		(
+			#{id}, 
+			#{todoId}, 
+			#{operate}, 
+			#{sort}, 
+			#{labelName}, 
+			#{type}, 
+			#{param}, 
+			#{style}, 
+			#{size}, 
+			#{nextStep}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.TodoCenterOperation">
+		update ngt_todo_center_operation 
+		<set>
+			<if test="todoId != null">`todo_id` = #{todoId}, </if>
+			<if test="operate != null">`operate` = #{operate}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="labelName != null">`label_name` = #{labelName}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="param != null">`param` = #{param}, </if>
+			<if test="style != null">`style` = #{style}, </if>
+			<if test="size != null">`size` = #{size}, </if>
+			<if test="nextStep != null">`next_step` = #{nextStep}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_todo_center_operation where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_todo_center_operation where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

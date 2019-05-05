@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.AcquisitioncardChannelRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.AcquisitioncardChannel" id="acquisitioncardChannelMap">
+        <result property="id" column="id"/>
+        <result property="equipment" column="equipment"/>
+        <result property="collectorConfigure" column="collector_configure"/>
+        <result property="collector" column="collector"/>
+        <result property="stationNum" column="station_num"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.AcquisitioncardChannel">
+		select * from ngt_acquisitioncard_channel where id = #{value}
+	</select>
+	<select id="getProjectCodeById" resultType="java.lang.String">
+		select 
+		b.project_code
+	    from ngt_acquisitioncard_channel a 
+		left join ngt_collector b on b.id=a.collector
+		where a.id = #{value}
+	</select>
+	<select id="queryList" resultType="com.huaxing.bean.AcquisitioncardChannel">
+		select 
+			a.* ,
+			equipment.type AS "equipmentType",
+			equipment.name AS "equipmentName"
+		from 
+			ngt_acquisitioncard_channel a
+		LEFT JOIN ngt_equipment equipment ON equipment.id = a.equipment	
+        where
+			 a.collector =#{collector} 
+			and	a.collector_configure =#{collectorConfigure}
+	</select>
+	
+	<insert id="save" parameterType="com.huaxing.bean.AcquisitioncardChannel">
+		insert into ngt_acquisitioncard_channel
+		(
+			`id`, 
+			`equipment`, 
+			`collector_configure`, 
+			`collector`, 
+			`station_num`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{equipment}, 
+			#{collectorConfigure}, 
+			#{collector}, 
+			#{stationNum}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag} 
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.AcquisitioncardChannel">
+		update ngt_acquisitioncard_channel 
+		<set>
+			<if test="equipment != null">`equipment` = #{equipment}, </if>
+			<if test="collectorConfigure != null">`collector_configure` = #{collectorConfigure}, </if>
+			<if test="collector != null">`collector` = #{collector}, </if>
+			<if test="highStationNum != null">`high_station_num` = #{highStationNum}, </if>
+			<if test="stationNum != null">`station_num` = #{stationNum}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag} </if>
+		</set>
+		where id = #{id}
+	</update>
+	<select id="isExists" resultType="int">
+		SELECT 
+		  COUNT(*) 
+		FROM
+		  `ngt_acquisitioncard_channel` a 
+		WHERE a.`company_id` = #{companyId}
+		<if test="highStationNum !=null and highStationNum !=''">
+		  AND a.`high_station_num` = #{highStationNum} or a.`station_num` = #{highStationNum}
+		</if>
+		<if test="stationNum !=null and stationNum !=''">
+		  and  a.`station_num` = #{stationNum} or a.`high_station_num` = #{stationNum}
+		</if>
+
+	</select>
+	<delete id="delete">
+		DELETE   a,b FROM   ngt_acquisitioncard_channel  a  
+		LEFT JOIN  ngt_equipmentparam_config  b ON b.acquisitioncard_channel =a.id
+		WHERE a.id = #{value}
+	</delete>
+	
+	<delete id="deleteBatchByEqu">
+		delete from ngt_acquisitioncard_channel where equipment in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

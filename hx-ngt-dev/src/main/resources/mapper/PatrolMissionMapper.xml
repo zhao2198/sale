@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.PatrolMissionRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.PatrolMission" id="patrolMissionMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="type" column="type"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="patrolSchemeId" column="patrol_scheme_id"/>
+        <result property="state" column="state"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+<!--         <result property="enableFlag" column="enable_flag"/> -->
+    </resultMap>
+    
+     <resultMap type="com.huaxing.bean.PatrolMission" id="patrolDetailMissionMap" extends="patrolMissionMap">
+     	 <result property="handlerName" column="handler_name"/>
+     	  <result property="createName" column="create_name"/>
+     </resultMap>
+	
+    <resultMap type="com.huaxing.bean.PatrolMission" id="extendPatrolMissionMap" extends="patrolDetailMissionMap">
+		<collection property="contentList" ofType="com.huaxing.bean.PatrolMissionContent">
+			<id property="id" column="content_id"/>
+	        <result property="sort" column="sort"/>
+	        <result property="locationId" column="location_id"/>
+	        <result property="locationName" column="location_name"/>
+	        <result property="time" column="time"/>
+	        <result property="equipmentId" column="equipment_id"/>
+	        <result property="startTime" column="start_time"/>
+	        <result property="endTime" column="end_time"/>
+	        <result property="confirmorName" column="confirmor_name"/>
+	        <result property="confirmorPhone" column="confirmor_phone"/>
+	        <result property="content" column="mission_content"/>
+		</collection>
+    </resultMap>
+
+	<select id="get" resultMap="extendPatrolMissionMap">
+		select 
+		  mission.* ,
+		  content.id as 'content_id',
+		  content.`sort`,
+		  content.`location_id`,
+		  content.`location_name`,
+		  content.`time`,
+		  content.`equipment_id`,
+		  content.`start_time`,
+		  content.`end_time`,
+		  content.`confirmor_name`,
+		  content.`confirmor_phone`,
+		  content.`content` as 'mission_content',
+		  u.`name`  as handler_name,
+		  cu.`name` as create_name
+		from
+		  ngt_patrol_mission mission 
+		  left join `ngt_patrol_mission_content` content ON mission.`id` = content.`mission_id` 
+		  left join sys_user u ON mission.`handler_id` = u.`id` 
+		  left join sys_user cu ON mission.create_by = cu.`id` 
+		where mission.id = #{id}
+	</select>
+
+	<select id="queryList" resultMap="patrolDetailMissionMap">
+		
+		
+		SELECT mission.*,u.`name` as handler_name
+ 		FROM ngt_patrol_mission mission 
+		LEFT JOIN sys_user u ON mission.`handler_id` = u.`id` WHERE mission.`del_flag` = '0'
+		and mission.company_id like concat(#{companyId}, '%') 
+		
+			<if test="code != null and code != ''">and mission.code like concat('%',#{code},'%')</if>
+			<if test="startDate != null">and mission.create_date <![CDATA[>=]]> #{startDate}</if>
+			<if test="endDate != null">and mission.create_date <![CDATA[<=]]> #{endDate}</if>
+			<if test="state != null and state != ''">and mission.state = #{state}</if>
+			<if test="type != null and type != ''">and mission.type = #{type}</if>
+		
+		order by mission.create_date desc
+	</select>
+	
+
+	 
+	<insert id="save" parameterType="com.huaxing.bean.PatrolMission">
+		insert into ngt_patrol_mission
+		(
+			`id`, 
+			`code`, 
+			`type`, 
+			`handler_id`, 
+			`patrol_scheme_id`, 
+			`state`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{type}, 
+			#{handlerId}, 
+			#{patrolSchemeId}, 
+			#{state}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.PatrolMission">
+		update ngt_patrol_mission 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="handlerId != null">`handler_id` = #{handlerId}, </if>
+			<if test="patrolSchemeId != null">`patrol_scheme_id` = #{patrolSchemeId}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}</if>
+			<!-- <if test="enableFlag != null">`enable_flag` = #{enableFlag} </if> -->
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_patrol_mission where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_patrol_mission where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

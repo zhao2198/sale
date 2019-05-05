@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.ClazzRepository">
+
+
+  <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.Clazz" id="clazzMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+	<!-- 查询班次详情 -->
+	<select id="get" resultType="com.huaxing.bean.Clazz">
+		select * from ngt_classes  where id = #{id}
+	</select>
+	<!-- 查询班次列表 -->
+	<select id="queryList" resultMap="clazzMap">
+		select 
+		clazz.*
+ 		from ngt_classes clazz
+       <where>
+        clazz.del_flag='0'
+		<if test="companyId!=null and companyId !=''">
+		and clazz.company_id=#{companyId}
+		</if>
+		<if test="code!=null and code !=''">
+		and clazz.code like concat('%',#{code},'%')
+		</if>
+		<if test="name!=null and name !=''">
+		 and clazz.name like concat('%',#{name},'%')
+		</if>
+		<if test="enableFlag!=null and enableFlag !=''">
+		 and clazz.enable_flag=#{enableFlag}
+		</if>
+       </where>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_classes where del_flag='0'
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.Clazz">
+		insert into ngt_classes
+		(
+			`id`, 
+			`code`, 
+			`name`, 
+			`start_time`, 
+			`end_time`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{name}, 
+			#{startTime}, 
+			#{endTime},
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.Clazz">
+		update ngt_classes 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="startTime != null">`start_time` = #{startTime},  </if>
+			<if test="endTime != null">`end_time` = #{endTime},  </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag} </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_classes where id = #{id}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_classes where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	
+	<!-- 通过班次的id与名称查询是否有重复的班次 -->
+	<select id="isExists" resultType="int"  parameterType="com.huaxing.bean.Clazz">
+	      select count(*) from ngt_classes where 
+	        del_flag='0'
+	       <if test="companyId!=null and companyId !=''">
+			and company_id=#{companyId}
+		  </if>
+	      <if test="startTime != null">
+	        and `start_time` = DATE_FORMAT(#{startTime},'%Y-%m-%d %H:%i:%s')
+	      </if>
+		  <if test="endTime != null">
+		     and`end_time` = DATE_FORMAT(#{endTime},'%Y-%m-%d %H:%i:%s') 
+		  </if>
+	      <if test="id!=null and id!='' ">
+	         and  id !=#{id}
+	      </if>
+	</select>
+	<!-- 模糊查询班次的编号 -->
+	<select id="getLikelyCodes" resultType="java.lang.String"  parameterType="com.huaxing.bean.Clazz">
+	      select code from ngt_classes where 
+	        del_flag='0'
+	       <if test="companyId!=null and companyId !=''">
+			and company_id=#{companyId}
+		  </if>
+	      <if test="code !=null and code !='' ">
+	         and  code like concat('%',#{code},'%')
+	      </if>
+	</select>
+</mapper>

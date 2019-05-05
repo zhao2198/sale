@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TeamRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.Team" id="ngtTeamMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="monitorId" column="monitor"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+    <resultMap id="teamMap" type="com.huaxing.bean.Team">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="monitorName" column="monitorName"/>
+        <collection property="members" ofType="com.huaxing.vo.UserVo" column="team_id" javaType="ArrayList" select="select_memeber"></collection>
+    </resultMap>
+    <!--查询班组成员的名称  -->
+    <select id="select_memeber" resultType="com.huaxing.vo.UserVo">
+	 select
+	 u.id,
+	 u.name 
+	 from ngt_team team 
+	 left join ngt_team_member  member 
+		on team.id=member.team_id
+	 left join sys_user u 
+	    on u.id=member.user_id
+	where team.id=#{team_id}
+	</select>
+	
+	<select id="queryList" resultMap="teamMap" parameterType="com.huaxing.bean.Team">
+		SELECT
+		DISTINCT(team.id) AS "id",
+		team.`code` AS "code",
+		team.`name` AS "name",
+		monitor.name  AS "monitorName",
+		member.team_id AS "team_id"
+		FROM ngt_team team 
+		LEFT JOIN sys_user monitor ON  monitor.id=team.`monitor`
+		LEFT JOIN `ngt_team_member`  member ON team.`id` = member.`team_id`
+		LEFT JOIN sys_user m ON  m.id=member.`user_id`
+		<where>
+		team.del_flag='0'
+		<if test="companyId!=null and companyId !=''">
+		and team.company_id=#{companyId}
+		</if>
+		<if test="code!=null and code !=''">
+		and team.code like concat('%',#{code},'%')
+		</if>
+		<if test="name!=null and name !=''">
+		 and team.name like concat('%',#{name},'%')
+		</if>
+		<if test="enableFlag!=null and enableFlag !=''">
+		 and team.enable_flag=#{enableFlag}
+		</if>
+		</where>
+	</select>
+
+   <!--获取班组详情  -->
+	<select id="get" resultMap="teamMap" parameterType="java.lang.String" resultType="com.huaxing.bean.Team">
+		select
+		DISTINCT(team.id) AS "id",
+		team.`code` AS "code",
+		team.`name` AS "name",
+		monitor.id  AS "monitorId",
+		monitor.name  AS "monitorName",
+		member.team_id AS "team_id"
+		FROM ngt_team team 
+		LEFT JOIN sys_user monitor ON  monitor.id=team.`monitor`
+		LEFT JOIN `ngt_team_member`  member ON team.`id` = member.`team_id`
+		LEFT JOIN sys_user m ON  m.id=member.`user_id`
+		where team.id = #{id}
+		and team.del_flag='0'
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_team where del_flag='0'
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.Team">
+		insert into ngt_team
+		(
+			`id`, 
+			`code`, 
+			`name`, 
+			`monitor`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{name}, 
+			#{monitorId}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			'0'
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.Team">
+		update ngt_team 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="monitorId != null">`monitor` = #{monitorId}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_team where id = #{value}
+	</delete>
+	<!--批量逻辑删除  -->
+	<update id="deleteBatch">
+		update ngt_team set del_flag='1' where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</update>
+	<!--保存新的班组成员到值班成员表中  -->
+	<insert id="saveTeamMembers" parameterType="com.huaxing.bean.Team">
+		insert into ngt_team_member(team_id,user_id) values
+		<foreach item="memberId" collection="memIdsArr" separator="," index="index">
+		(
+		#{id}, #{memberId}
+		)
+		</foreach>
+	</insert>
+	<!-- 查询该公司未登陆的员工  -->
+	<select id="getSelectableUser" parameterType="com.huaxing.bean.Team" resultType="com.huaxing.common.entity.UserEntity">
+		SELECT tu.id,
+		tu.`name` 
+		FROM sys_user tu 
+		WHERE tu.`del_flag`='0' 
+		AND tu.`company_id`=#{companyId} 
+		AND tu.id NOT IN
+	   ( SELECT DISTINCT(u.id) FROM ngt_team_member m 
+	    INNER JOIN sys_user u ON u.id =m.`user_id`
+	    WHERE u.`del_flag`='0'
+	    <if test="id !=null and id !=''">
+		AND m.team_id !=#{id} 
+	    </if>
+		AND u.`company_id`=#{companyId} 
+		)
+	</select>
+	<!--删除班组下的成员  -->
+	<delete id="deleteMembers" parameterType="com.huaxing.bean.Team">
+		delete from ngt_team_member where team_id in 
+		<foreach item="id" collection="array" separator="," open="(" close=")">
+			(
+			#{id}
+			)
+		</foreach>
+	</delete>
+	<!--模糊查询班组编号  -->
+	<select id="getLikeLyCodes" parameterType="com.huaxing.bean.Team" resultType="java.lang.String">
+		SELECT team.code 
+		FROM ngt_team team
+		WHERE 
+		team.del_flag='0'
+		<if test="companyId!=null and companyId !=''">
+			and team.company_id=#{companyId}
+		</if>
+		<if test="code!=null and code !=''">
+			and team.code like concat('%',#{code},'%')
+		</if>
+	</select>
+	
+	<!-- 通过班组的id与班组名称查询 -->
+	<select id="isExists" resultType="int"  parameterType="com.huaxing.bean.Team">
+	      select count(*) from ngt_team where 
+	      del_flag=#{delFlag}
+	      <if test="companyId!=null and companyId !=''">
+			and company_id=#{companyId}
+		  </if>
+	      <if test="name!=null and name!='' ">
+	         and  name=#{name}
+	      </if>
+	        <if test="id!=null and id!='' ">
+	         and  id !=#{id}
+	      </if>
+	</select>
+	<!--获取班组的所有成员  -->
+	<select id="getMembers" parameterType="java.lang.String" resultType="com.huaxing.common.entity.UserEntity">
+	select 
+	u.* 
+	from ngt_team_member m 
+	left join sys_user u 
+	on m.user_id=u.id 
+	where m.team_id=#{teamId}
+	</select>
+</mapper>

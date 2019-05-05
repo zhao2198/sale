@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MeterreadingMissionRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+<!--     <resultMap type="com.huaxing.bean.MeterreadingMission" id="meterreadingMissionMap">
+        <result property="id" column="id"/>
+        <result property="meterId" column="meter_id"/>
+        <result property="time" column="time"/>
+        <result property="day" column="day"/>
+        <result property="value" column="value"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="handlerIds" column="handler_ids"/>
+        <result property="state" column="state"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="memo" column="memo"/>
+    </resultMap> -->
+
+	<select id="get" resultType="com.huaxing.bean.MeterreadingMission">
+		select * from ngt_meterreading_mission 
+		<trim prefix="where" prefixOverrides="and">
+			<if test="id != null">id = #{id}</if>
+			<if test="meterId != null">and meter_id = #{meterId}</if>
+			<if test="day != null">and day = #{day}</if>
+			<if test="time != null">and time = #{time}</if>
+		</trim>
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.MeterreadingMission">
+		select mission.* from ngt_meterreading_mission mission
+		<trim prefix="where" prefixOverrides="and">
+			<if test="handlerId != null">mission.handler_ids like concat('%',#{handlerId},'%')</if>
+			<if test="meterId != null">and mission.meter_id = #{meterId}</if>
+			<if test="state != null">and mission.state = #{state}</if>
+			<if test="time != null"> and mission.time = #{time}</if>
+        	<if test="day != null">and mission.day = #{day}</if>
+        	<if test="startDate != null">and mission.day <![CDATA[ >= ]]>#{startDate}</if>
+        	<if test="endDate != null">and mission.day <![CDATA[ <= ]]>#{endDate}</if>
+        	<if test="times != null">
+				and mission.time in<foreach collection="times" open="(" separator="," close=")" item="item">#{item}</foreach>
+		  	</if>
+		</trim>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_meterreading_mission 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MeterreadingMission">
+		insert into ngt_meterreading_mission
+		(
+			`id`, 
+			`meter_id`, 
+			`time`, 
+			`day`, 
+			`value`, 
+			`handler_id`, 
+			`handler_ids`, 
+			`state`, 
+			`create_by`, 
+			`create_date`, 
+			`update_date`, 
+			`memo`
+		)
+		values
+		(
+			#{id}, 
+			#{meterId}, 
+			#{time}, 
+			#{day}, 
+			#{value}, 
+			#{handlerId}, 
+			#{handlerIds}, 
+			#{state}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateDate}, 
+			#{memo}
+		)
+	</insert>
+	 
+	<insert id="saveBatch" parameterType="com.huaxing.bean.MeterreadingMission">
+		insert into ngt_meterreading_mission
+		(
+			`id`, 
+			`meter_id`, 
+			`time`, 
+			`day`, 
+			`value`, 
+			`handler_id`, 
+			`handler_ids`, 
+			`state`, 
+			`create_by`, 
+			`create_date`, 
+			`update_date`, 
+			`memo`
+		)
+		values
+		<foreach collection="list" item="item" separator=",">
+		(
+			#{item.id}, 
+			#{item.meterId}, 
+			#{item.time}, 
+			#{item.day}, 
+			#{item.value}, 
+			#{item.handlerId}, 
+			#{item.handlerIds}, 
+			#{item.state}, 
+			#{item.createBy}, 
+			#{item.createDate}, 
+			#{item.updateDate}, 
+			#{item.memo}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MeterreadingMission">
+		update ngt_meterreading_mission 
+		<set>
+			<if test="meterId != null">`meter_id` = #{meterId}, </if>
+			<if test="time != null">`time` = #{time}, </if>
+			<if test="day != null">`day` = #{day}, </if>
+			<if test="value != null">`value` = #{value}, </if>
+			<if test="handlerId != null">`handler_id` = #{handlerId}, </if>
+			<if test="handlerIds != null">`handler_ids` = #{handlerIds}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="memo != null">`memo` = #{memo}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updateHandlerIdsBatch" parameterType="com.huaxing.bean.MeterreadingMission">
+		update ngt_meterreading_mission 
+		set 
+			handler_ids = <foreach collection="list" item="item" open="case id" close="end">
+				when #{item.id} then #{item.handlerIds}
+			</foreach>
+		where id in 
+			<foreach collection="list" item="item" open="(" close=")" separator=",">
+				#{item.id}
+			</foreach>
+	</update>
+	
+	
+	<update id="submitDate" parameterType="com.huaxing.bean.MeterreadingMission">
+		update ngt_meterreading_mission 
+		<set>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+		</set>
+		<trim prefix="where" prefixOverrides="and">
+			handler_ids like concat('%',#{handlerId},'%')
+			and day = #{day}
+			and state = '1' 
+		</trim>
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_meterreading_mission
+		<trim prefix="where" prefixOverrides="and">
+			<if test="meterId != null">meter_id = #{meterId}</if>
+			<if test="time != null">
+				and 
+				CONCAT(DATE_FORMAT(`day`,'%Y-%m-%d'),' ',#{time})<![CDATA[ >= ]]>
+				CONCAT(DATE_FORMAT(NOW(),'%Y-%m-%d'),' ',DATE_FORMAT(NOW(),'%H%i'))
+			</if>
+			<if test="day != null">
+				<![CDATA[and day = #{day}]]>
+			</if>
+			and 
+			CONCAT(DATE_FORMAT(`day`,'%Y-%m-%d'),' ',`time`)<![CDATA[ >= ]]>
+			CONCAT(DATE_FORMAT(NOW(),'%Y-%m-%d'),' ',DATE_FORMAT(NOW(),'%H%i'))
+		</trim>
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_meterreading_mission where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<!--某一天所选设备的抄表记录，升序排序  -->
+	<select id="queryMissionList" parameterType="com.huaxing.bean.MeterreadingMission" resultType="com.huaxing.bean.MeterreadingMission">
+	SELECT
+		e.`id` AS 'meterId',
+		e.name AS 'meterName',
+		m.id,
+		m.`time`,
+		m.`day`,
+		m.`value`
+		FROM `ngt_meterreading_mission` m
+		LEFT JOIN ngt_equipment e 
+		ON m.`meter_id`=e.`id`
+		<!-- LEFT JOIN sys_dict d
+		ON e.`type`=d.`type`
+		WHERE d.`type`='equ_classify' -->
+		<where> m.state='2'
+		<if test="companyId !=null and companyId !=''">
+	    AND e.`company_id`=#{companyId}
+		</if>
+		<if test="dayTime !=null and dayTime !=''">
+		AND m.`day`=#{dayTime}
+		</if>
+		AND m.`meter_id` in
+		<foreach item="id" collection="meterIdArr" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+		</where>
+		ORDER BY m.time ASC
+	</select>
+	
+	<select id="getRecentValue" parameterType="com.huaxing.bean.MeterreadingMission" resultType="java.math.BigDecimal">
+		SELECT
+		m.`value`
+		FROM `ngt_meterreading_mission` m
+		LEFT JOIN ngt_equipment e 
+		ON m.`meter_id`=e.`id`
+		<where>
+		 m.state='2'
+		<if test="companyId !=null and companyId !=''">
+	     AND e.`company_id`=#{companyId}
+		</if>
+		<if test="dayTime !=null and dayTime !=''">
+		AND m.`day`=#{dayTime}
+		</if>
+		<if test="meterId !=null and meterId !=''">
+		AND m.`meter_id`=#{meterId}
+		</if>
+		<if  test="time !=null and time !=''">
+		 AND m.`time` &lt; #{time}
+		</if>
+		</where>
+		ORDER BY m.day DESC,m.time DESC
+		limit 1
+	</select>
+	
+	<!--获取所查询的表计的列表  -->
+	<select id="getEqps" resultType="com.huaxing.bean.Equipment" parameterType="com.huaxing.bean.MeterreadingMission">
+    SELECT
+    id, 
+    name 
+    FROM ngt_equipment 
+    WHERE 
+    del_flag='0' 
+    <if test="companyId !=null and companyId !=''">
+	  AND company_id=#{companyId}
+	</if>
+    AND id IN 
+	   <foreach item="id" collection="meterIdArr" open="(" separator="," close=")">
+			  #{id}
+		</foreach>
+	</select>
+	
+	<!-- 查询某月的所选表计最后一次抄表的值  -->
+	<select id="getRecentlyMeterreading" resultType="com.huaxing.bean.MeterreadingMission" parameterType="com.huaxing.bean.MeterreadingMission">
+			SELECT 
+				 m.meter_id AS 'meterId',
+				 e.`name` AS 'meterName',
+				 MAX(m.VALUE) AS 'value'
+				  FROM
+				    ngt_meterreading_mission m 
+				    LEFT JOIN ngt_equipment e 
+				      ON m.`meter_id` = e.`id` 
+				  WHERE m.state = '2' 
+				    AND e.`company_id` = #{companyId}
+				    AND DATE_FORMAT(m.`day`, '%Y-%m') = #{dayTime}
+				    AND m.`meter_id` in
+					<foreach item="id" collection="meterIdArr" open="(" separator="," close=")">
+					  #{id}
+					</foreach>
+				    GROUP BY m.meter_id,e.`name`
+	</select>
+	<!--查询某月的所选表计首次抄表的值  -->
+	<select id="getRecentlyBaseMeterreading" resultType="com.huaxing.bean.MeterreadingMission" parameterType="com.huaxing.bean.MeterreadingMission">
+		SELECT 
+				 m.meter_id AS 'meterId',
+				 e.`name` AS 'meterName',
+				 MIN(m.VALUE) AS 'value'
+				  FROM
+				    ngt_meterreading_mission m 
+				    LEFT JOIN ngt_equipment e 
+				      ON m.`meter_id` = e.`id` 
+				  WHERE m.state = '2' 
+				    AND e.`company_id` = #{companyId}
+				    AND DATE_FORMAT(m.`day`, '%Y-%m') = #{dayTime}
+				    AND m.`meter_id` in
+					<foreach item="id" collection="meterIdArr" open="(" separator="," close=")">
+					  #{id}
+					</foreach>
+				    GROUP BY m.meter_id,e.`name`
+	</select>
+</mapper>

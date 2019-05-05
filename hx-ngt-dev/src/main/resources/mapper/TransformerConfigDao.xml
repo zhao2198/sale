@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TransformerConfigRepository">
+	<!-- 新增变压器参数配置  王晓超 2018年7月2日16:31:29 -->
+	<insert id="createTransformerConfig">
+		INSERT INTO ngt_parameter(
+		id,
+		type,
+		value,
+		company_id
+	    )VALUES
+		<foreach collection="list" item="item"  separator=",">
+			(
+				#{item.id},
+				#{item.type},
+				#{item.value},
+				#{item.companyId}
+			)
+		</foreach>
+	</insert>
+	<!--删除变压器配置信息  王晓超 2018年7月2日17:24:29  -->
+	<delete id="deleteTransformerConfig">
+		DELETE
+		FROM
+			ngt_parameter
+		WHERE
+			type LIKE CONCAT('%',#{transformerId},'%')
+			AND
+			company_id = #{companyId}
+	</delete>
+	<!-- 查看变压器配置详情  王晓超 2018年7月3日11:21:39 -->
+	<select id="getTransformerConfigInfo" resultType="com.huaxing.bean.TransformerConfig">
+		SELECT
+			type,
+			`value`,
+			company_id
+		FROM
+			ngt_parameter
+		WHERE
+			type LIKE CONCAT('%',#{transformerId},'%')
+			AND
+			company_id = #{companyId}
+	</select>
+</mapper>

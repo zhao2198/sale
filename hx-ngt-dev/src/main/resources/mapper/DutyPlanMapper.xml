@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.DutyPlanRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.DutyPlan" id="dutyPlanMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="classesId" column="classes_id"/>
+        <result property="teamId" column="team_id"/>
+        <result property="dutyContent" column="duty_content"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="intervalDay" column="interval_day"/>
+        <result property="publishStatus" column="publish_status"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.DutyPlan">
+		select 
+		 plan.*,
+		 plan.classes_id AS "clazzId",
+		 plan.team_id AS "teamId",
+		<!--  plan.code AS "code",
+		 plan.team_id AS "teamId",
+		 plan.start_time AS "startTime",
+		 plan.end_time AS "endTime",
+		 plan.interval_day AS "intervalDay",
+		 plan.duty_content AS "dutyContent", -->
+		 team.name AS "teamName",
+		 clazz.name AS "clazzName"
+		 from ngt_duty_plan plan 
+		 left join ngt_team team on team.id=plan.team_id
+		 left join ngt_classes clazz on clazz.id=plan.classes_id
+		 where plan.id = #{id}
+		 and plan.del_flag='0'
+		<!-- and team.del_flag='0'
+		  and clazz.del_flag='0' -->
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.DutyPlan">
+		select plan.*,
+		team.name AS "teamName",
+		clazz.name AS "clazzName"
+		 from ngt_duty_plan plan
+		left join ngt_team team on team.id=plan.team_id
+		left join ngt_classes clazz on clazz.id=plan.classes_id
+		where plan.del_flag='0'
+		<if test="companyId !=null and companyId!=''">
+		and plan.company_id=#{companyId}
+		</if>
+     	<if test="code!=null and code !=''">
+		and plan.code like concat('%',#{code},'%')
+		</if>
+		<if test="startTime !=null">
+		<![CDATA[ AND DATE_FORMAT(plan.start_time,'%Y-%m-%d')>= DATE_FORMAT(#{startTime} ,'%Y-%m-%d')]]>
+		</if>
+		<if test="endTime !=null">
+		<![CDATA[ AND DATE_FORMAT(plan.end_time,'%Y-%m-%d')<= DATE_FORMAT(#{endTime} ,'%Y-%m-%d')]]>
+		</if>
+		<if test="publishStatus !=null and publishStatus!=''">
+		AND plan.publish_status=#{publishStatus}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_duty_plan 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.DutyPlan">
+		insert into ngt_duty_plan
+		(
+			`id`, 
+			`code`, 
+			`classes_id`, 
+			`team_id`, 
+			`duty_content`, 
+			`start_time`, 
+			`end_time`, 
+			`interval_day`, 
+			`publish_status`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{clazzId}, 
+			#{teamId}, 
+			#{dutyContent}, 
+			#{startTime}, 
+			#{endTime}, 
+			#{intervalDay}, 
+			#{publishStatus}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}
+		)
+	</insert>
+	 <!--修改值班计划  -->
+	<update id="update" parameterType="com.huaxing.bean.DutyPlan">
+		update ngt_duty_plan 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="clazzId != null">`classes_id` = #{clazzId}, </if>
+			<if test="teamId != null">`team_id` = #{teamId}, </if>
+			<if test="dutyContent != null">`duty_content` = #{dutyContent}, </if>
+			<if test="startTime != null">`start_time` = #{startTime}, </if>
+			<if test="endTime != null">`end_time` = #{endTime}, </if>
+			<if test="intervalDay != null">`interval_day` = #{intervalDay}, </if>
+			<if test="publishStatus != null">`publish_status` = #{publishStatus}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks} </if>
+		</set>
+		where id = #{id}
+	</update>
+	<!--发布值班计划  -->
+	<update id="publish" parameterType="java.lang.String">
+	 update ngt_duty_plan plan 
+	 <if test="publishStatus != null">plan.`publish_status` = '1' </if>
+	 where plan.id=#{id}
+	</update>
+	
+	<delete id="delete">
+		<!-- update ngt_duty_plan set del_flag='1' where id = #{id} -->
+	DELETE plan,m,s,c,t FROM 
+	ngt_duty_plan plan
+	LEFT JOIN ngt_duty_mission m ON m.`dutyPlan_id`=plan.`id`
+	LEFT JOIN ngt_duty_sign s ON s.`id`=m.`sign_id`
+	LEFT JOIN ngt_shiftclass c ON c.`mission_id`=m.`id`
+	LEFT JOIN ngt_todo_center_content t on ref_id=m.id
+	WHERE m.`sign_id` IS  NULL AND plan.`id`=#{id}
+	</delete>
+	
+	<update id="deleteBatch">
+		DELETE plan,m,s,c,t FROM 
+	ngt_duty_plan plan
+	LEFT JOIN ngt_duty_mission m ON m.`dutyPlan_id`=plan.`id`
+	LEFT JOIN ngt_duty_sign s ON s.`id`=m.`sign_id`
+	LEFT JOIN ngt_shiftclass c ON c.`mission_id`=m.`id`
+	LEFT JOIN ngt_todo_center_content t on ref_id=m.id
+	WHERE m.`sign_id` IS  NULL AND plan.`id` in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</update>
+	<!--模糊查询计划相关的编号  -->
+	<select id="getLikelyCodes" parameterType="com.huaxing.bean.DutyPlan" resultType="java.lang.String">
+	select plan.code from ngt_duty_plan plan
+	<where>
+	<if test="delFlag!=null and delFlag!=''">
+	  plan.del_flag=#{delFlag}
+	</if>
+	<if test="companyId!=null and companyId!=''">
+	  and plan.company_id=#{companyId}
+	</if>
+	<if test="code!=null and code!=''">
+	  and  plan.code like concat('%',#{code},'%')
+	</if>
+	</where>
+	</select>
+	
+	<!--通过值班计划的编码查询有无相通的编码  -->
+	<select id="getPlanByCode" parameterType="com.huaxing.bean.DutyPlan" resultType="com.huaxing.bean.DutyPlan">
+	select plan.* from ngt_duty_plan plan
+	<where>
+	  plan.del_flag='0'
+	<if test="companyId!=null and companyId!=''">
+	  and plan.company_id=#{companyId}
+	</if>
+	<if test="code!=null and code!=''">
+	  and  plan.code=#{code}
+	</if>
+	</where>
+	</select>
+	
+	<!--验证值班计划可被发布  -->
+	<select id="checkPlanPublish" parameterType="com.huaxing.bean.DutyPlan" resultType="int">
+	select count(*) from ngt_duty_plan 
+	where del_flag='0'
+	and id=#{id}
+	and publish_status is not null
+	and publish_status='0'
+	</select>
+</mapper>

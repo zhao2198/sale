@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MeterreadingLogSubmitRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MeterreadingLogSubmit" id="meterreadingLogSubmitMap">
+        <result property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.MeterreadingLogSubmit">
+		select * from ngt_meterreading_log_submit where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.MeterreadingLogSubmit">
+		select * from ngt_meterreading_log_submit
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_meterreading_log_submit 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MeterreadingLogSubmit">
+		insert into ngt_meterreading_log_submit
+		(
+			`id`, 
+			`mission_id`, 
+			`create_by`, 
+			`create_date`
+		)
+		values
+		(
+			#{id}, 
+			#{missionId}, 
+			#{createBy}, 
+			#{createDate}
+		)
+	</insert>
+	
+	<insert id="saveBatch">
+		INSERT INTO ngt_meterreading_log_submit (
+		  id,
+		  mission_id,
+		  create_by,
+		  create_date
+		) 
+		VALUES 
+		<foreach collection="list" separator="," item="log">
+			(
+			#{log.id}, 
+			#{log.missionId}, 
+			#{log.createBy}, 
+			#{log.createDate}
+			)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MeterreadingLogSubmit">
+		update ngt_meterreading_log_submit 
+		<set>
+			<if test="missionId != null">`mission_id` = #{missionId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_meterreading_log_submit where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_meterreading_log_submit where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

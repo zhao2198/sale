@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MeterreadingSchemeRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MeterreadingScheme" id="meterreadingSchemeMap">
+        <result property="id" column="id"/>
+        <result property="meterId" column="meter_id"/>
+        <result property="day" column="day"/>
+        <result property="time" column="time"/>
+        <result property="handlerIds" column="handler_ids"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="memo" column="memo"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.MeterreadingScheme">
+		select * from ngt_meterreading_scheme_new where id = #{id}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.MeterreadingScheme">
+		select scheme.* 
+		from ngt_meterreading_scheme_new scheme
+		left join ngt_equipment meter 
+		on meter.id = scheme.meter_id
+        <where>
+        	<if test="companyId != null">meter.company_id = #{companyId}</if>
+        	<if test="meterId != null"> and scheme.meter_id = #{meterId}</if>
+        	<if test="time != null"> and scheme.time = #{time}</if>
+        	<if test="day != null">and scheme.day = #{day}</if>
+        	<if test="startDate != null">and scheme.day <![CDATA[ >= ]]>#{startDate}</if>
+        	<if test="endDate != null">and scheme.day <![CDATA[ <= ]]>#{endDate}</if>
+        	<if test="times != null">
+				and scheme.time in<foreach collection="times" open="(" separator="," close=")" item="item">#{item}</foreach>
+		  	</if>
+        </where>
+        <!-- <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by scheme.id desc
+			</otherwise>
+        </choose> -->
+        order by scheme.create_date desc
+		<!-- <if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if> -->
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_meterreading_scheme_new 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MeterreadingScheme">
+		insert into ngt_meterreading_scheme_new
+		(
+			`id`, 
+			`meter_id`, 
+			`day`, 
+			`time`, 
+			`handler_ids`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`memo`
+		)
+		values
+		(
+			#{id}, 
+			#{meterId}, 
+			#{day}, 
+			#{time}, 
+			#{handlerIds}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{memo}
+		)
+	</insert>
+	<insert id="saveBatch" parameterType="com.huaxing.bean.MeterreadingScheme">
+		insert into ngt_meterreading_scheme_new
+		(
+			`id`, 
+			`meter_id`, 
+			`day`, 
+			`time`, 
+			`handler_ids`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`memo`
+		)
+		values
+		<foreach collection="list" item="item" separator=",">
+		(
+			#{item.id}, 
+			#{item.meterId}, 
+			#{item.day}, 
+			#{item.time}, 
+			#{item.handlerIds}, 
+			#{item.createBy}, 
+			#{item.createDate}, 
+			#{item.updateBy}, 
+			#{item.updateDate}, 
+			#{item.memo}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MeterreadingScheme">
+		update ngt_meterreading_scheme_new 
+		<set>
+			<if test="meterId != null">`meter_id` = #{meterId}, </if>
+			<if test="day != null">`day` = #{day}, </if>
+			<if test="time != null">`time` = #{time}, </if>
+			<if test="handlerIds != null">`handler_ids` = #{handlerIds}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="memo != null">`memo` = #{memo}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_meterreading_scheme_new 
+		<trim prefix="where" prefixOverrides="and">
+		  <choose>
+		  	<when test="id != null">
+		  	  id = #{id}	
+		  	</when>
+		  	<otherwise>
+			  <if test="meterId != null">meter_id = #{meterId}</if>
+			  <if test="time != null">and time = #{time}</if>
+		  	</otherwise>
+		  </choose>
+		</trim>
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_meterreading_scheme_new where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

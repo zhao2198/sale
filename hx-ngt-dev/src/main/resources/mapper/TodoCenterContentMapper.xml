@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.TodoCenterContentRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.TodoCenterContent" id="basicTodoCenterContentMap">
+        <result property="id" column="center_id"/>
+        <result property="content" column="content"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="createName" column="create_name"/>
+        <result property="theme" column="theme"/>
+    </resultMap>
+    
+    <resultMap type="com.huaxing.bean.TodoCenterContent" id="extendTodoCenterContentMap" extends="basicTodoCenterContentMap">
+    	 <result property="readFlag" column="read_flag"/>
+    	<association property="Operation" javaType="com.huaxing.bean.TodoCenterOperation">
+		<result property="todoId" column="todo_id"/>
+        <result property="operate" column="operate"/>
+        <result property="sort" column="sort"/>
+        <result property="labelName" column="label_name"/>
+        <result property="type" column="type"/>
+        <result property="param" column="param"/>
+        <result property="style" column="style"/>
+        <result property="size" column="size"/>
+        <result property="nextStep" column="next_step"/>
+		</association>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.TodoCenterContent">
+		select * from ngt_todo_center_content where id = #{value}
+	</select>
+
+	<select id="queryList" resultMap="extendTodoCenterContentMap">
+		SELECT content.*, u.`name` AS create_name,center.id as center_id,center.read_flag,opera.todo_id,opera.operate,opera.label_name,opera.type,opera.param,opera.style,opera.size,opera.next_step 
+		FROM ngt_todo_center_content content INNER JOIN ngt_todo_center center ON content.id = center.content_id AND center.receiver_id=#{createBy} 
+		
+	INNER JOIN ngt_todo_center_operation opera ON opera.todo_id = center.id
+	LEFT JOIN sys_user u ON u.id = content.create_by 
+	<trim prefix="where" prefixOverrides="and">
+	<if test="theme != null"> AND content.theme like concat('%', #{theme}, '%') </if>
+		<if test="readFlag != null"> AND center.read_flag=#{readFlag}</if>
+		<if test="startDate != null"><![CDATA[ AND content.create_date >= #{startDate} ]]></if>
+		<if test="endDate != null"><![CDATA[ AND content.create_date <= #{endDate} ]]></if>
+		</trim>
+		    ORDER BY content.`create_date` DESC
+	</select>
+	
+ 
+	<insert id="save" parameterType="com.huaxing.bean.TodoCenterContent">
+		insert into ngt_todo_center_content
+		(
+			`id`, 
+			`content`, 
+			`create_by`, 
+			`create_date`, 
+			`theme`,
+			`ref_id`
+		)
+		values
+		(
+			#{id}, 
+			#{content}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{theme},
+			#{refId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.TodoCenterContent">
+		update ngt_todo_center_content 
+		<set>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="theme != null">`theme` = #{theme}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_todo_center_content where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_todo_center_content where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.DutyMissionRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.DutyMission" id="dutyMissionMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="userId" column="user_id"/>
+        <result property="dutyContent" column="duty_content"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="companyId" column="company_id"/>
+        <result property="dutyplanId" column="dutyPlan_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="signId" column="sign_id"/>
+        <result property="publishStatus" column="publish_status"/>
+        <result property="executeStatus" column="execute_status"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.DutyMission" parameterType="java.lang.String">
+		SELECT 
+		a.id,
+		a.`code`,
+		a.`user_id` AS "userId",
+		a.`duty_content` AS "dutyContent",
+		a.`start_time` AS "startTime",
+		a.`end_time` AS "endTime",
+		a.execute_status AS "executeStatus",
+		u.name AS "userName",
+		dutySign.id AS "signVo.id",
+		dutySign.signIn_status AS "signVo.signinStatus",
+		dutySign.signIn_time AS "signVo.signinTime",
+		signP.name AS "signVo.signPersonName"
+		FROM ngt_duty_mission a 
+		LEFT JOIN sys_user u ON u.id = a.user_id
+		LEFT JOIN ngt_duty_sign dutySign ON dutySign.id=a.sign_id
+		LEFT JOIN sys_user signP ON signP.id = dutySign.sign_person
+		where a.id=#{id}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.DutyMission" parameterType="com.huaxing.bean.DutyMission">	
+		SELECT 
+		a.id,
+		a.code,
+		u.name AS "userName",
+		a.duty_content AS "dutyContent",
+		a.start_time AS "startTime",
+		a.end_time AS "endTime",
+		a.execute_status as "executeStatus",
+		dutySign.id AS "signVo.id",
+		dutySign.signIn_status AS "signVo.signinStatus",
+		dutySign.signIn_time AS "signVo.signinTime",
+		signP.name AS "signVo.signPersonName"
+		FROM ngt_duty_mission a
+		LEFT JOIN sys_user u ON u.id = a.user_id
+		LEFT JOIN ngt_company ngtCompany on ngtCompany.id=a.company_id
+		LEFT JOIN ngt_duty_sign dutySign on dutySign.id=a.sign_id
+		LEFT JOIN sys_user signP ON signP.id = dutySign.sign_person
+		<where>
+			a.del_flag='0'
+			<if test="companyId!=null and companyId!=''">
+			and a.company_id=#{companyId}	
+			</if>
+			<if test="code != null and code != ''">
+				AND a.code like concat('%',#{code},'%')
+			</if>
+			<if test="startTime != null" >
+			<![CDATA[ AND DATE_FORMAT(a.start_time,'%Y-%m-%d')>= DATE_FORMAT(#{startTime} ,'%Y-%m-%d')]]>
+			</if>
+			<if test="endTime != null">
+			<![CDATA[ AND DATE_FORMAT(a.end_time,'%Y-%m-%d')<= DATE_FORMAT(#{endTime} ,'%Y-%m-%d')]]>
+			</if>
+			<if test="userArr != null">
+				AND a.user_id in
+				<foreach item="id" collection="userArr" open="(" separator="," close=")">
+					#{id}
+				</foreach>
+			</if>
+		</where>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_duty_mission 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.DutyMission">
+		insert into ngt_duty_mission
+		(
+			`id`, 
+			`code`, 
+			`user_id`, 
+			`duty_content`, 
+			`start_time`, 
+			`end_time`, 
+			`company_id`, 
+			`dutyPlan_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`sign_id`,  
+			`execute_status`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{userId}, 
+			#{dutyContent}, 
+			#{startTime}, 
+			#{endTime}, 
+			#{companyId}, 
+			#{dutyplanId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{sign.id}, 
+			#{executeStatus}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.DutyMission">
+		update ngt_duty_mission 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="dutyContent != null">`duty_content` = #{dutyContent}, </if>
+			<if test="startTime != null">`start_time` = #{startTime}, </if>
+			<if test="endTime != null">`end_time` = #{endTime}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="dutyplanId != null">`dutyPlan_id` = #{dutyplanId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="sign != null and sign.id!='' " >`sign_id` = #{sign.id}, </if>
+			<if test="executeStatus != null">`execute_status` = #{executeStatus} </if>
+			<!-- <if test="signStatus != null">`sign_status` = #{signStatus}</if> -->
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_duty_mission where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_duty_mission where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	
+	<!--值班日历上要展示的值班任务 -->
+	<select id="getListForCalendar" parameterType="com.huaxing.bean.DutyMission" resultType="com.huaxing.bean.DutyCalendar">
+	SELECT 
+		a.id AS "id",
+		a.duty_content AS "title",
+		a.start_time AS "start",
+		a.end_time AS "end", 
+		"0" AS "allday",
+		a.user_id AS "user.id",
+		user.name AS "user.name",
+		user.login_name AS "user.loginName",
+		a.company_id AS "companyId",
+		dutySign.id AS "signVo.id",
+		dutySign.signIn_status AS "signVo.signinStatus",
+		dutySign.signIn_time AS "signVo.signinTime"
+		FROM ngt_duty_mission a
+		LEFT JOIN sys_user user ON user.id = a.user_id
+		LEFT JOIN sys_user updateBy ON updateBy.id = a.update_by
+		LEFT JOIN ngt_company ngtCompany on ngtCompany.id=a.company_id
+		LEFT JOIN ngt_duty_sign dutySign on dutySign.id=a.sign_id
+		<where>
+			a.del_flag ='0'
+			<if test="companyId != null and companyId != ''">
+				AND a.company_id=#{companyId}
+			</if>
+			<if test="code != null and code != ''">
+				AND a.code like concat('%',#{code},'%')
+			</if>
+			<if test="startTime != null" >
+			<![CDATA[ AND DATE_FORMAT(a.start_time,'%Y-%m-%d')>= DATE_FORMAT(#{startTime} ,'%Y-%m-%d')]]>
+			</if>
+			<if test="endTime != null">
+			<![CDATA[ AND DATE_FORMAT(a.end_time,'%Y-%m-%d')<= DATE_FORMAT(#{endTime} ,'%Y-%m-%d')]]>
+			</if>
+			<if test="userArr != null">
+				AND a.user_id in
+				<foreach item="id" collection="userArr" open="(" separator="," close=")">
+					#{id}
+				</foreach>
+			</if>
+			<if test="sign!=null and sign.signinStatus != null and sign.signinStatus != ''">
+				AND dutySign.signIn_status=#{sign.signinStatus}
+			</if>
+		</where>
+		 <!-- group by DATE_FORMAT(a.start_time,'%Y-%m-%d') -->
+		order by a.start_time
+	</select>
+		<!--点击日历的每一天，显示当天的值班任务,app用接口-->
+	<select id="queryDayMissions" parameterType="java.util.Map" resultType="com.huaxing.bean.DutyMission">
+		SELECT 
+		a.id AS "id",
+		a.code AS "code",
+		a.user_id AS "user.id",
+		a.duty_content AS "dutyContent",
+		a.start_time AS "startTime",
+		a.end_time AS "endTime",
+		a.company_id AS "ngtCompany.id",
+		a.dutyPlan_id AS "ngtDutyPlan.id",
+		a.publish_status AS "publishStatus",
+		a.execute_status AS "executeStatus",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		user.name AS "user.name"
+		FROM ngt_duty_mission a
+		LEFT JOIN sys_user user ON user.id = a.user_id
+		<where>
+			a.del_flag ='0'
+			<if test="companyId!=null and companyId!=''">
+			 and a.company_id=#{companyId}
+		    </if>
+			<if test="dateday != null and dateday != ''" >
+			<![CDATA[ AND DATE_FORMAT(a.start_time,'%Y-%m-%d')= DATE_FORMAT(#{dateday} ,'%Y-%m-%d')]]>
+			</if>
+			<if test="userId!=null and userId!=''">
+			 and a.user_id=#{userId}
+		    </if> 
+		</where>
+	</select>
+	<select id="getLikelyCodes" resultType="java.lang.String">
+		select code from ngt_duty_mission where 
+		del_flag='0'
+		<if test="companyId !=null and companyId!=''">
+		and company_id =#{companyId}
+		</if>
+		<if test="code !=null and code!=''">
+		and code like concat('%',#{code},'%')
+		</if>
+	</select>
+	<!--查询当天所有的值班任务  -->
+	<select id="getTodayMissions"  resultType="com.huaxing.bean.DutyMission">
+	SELECT * FROM ngt_duty_mission m WHERE 
+	m.del_flag='0' 
+	AND m.company_id=#{companyId} 
+	AND DATE_FORMAT(m.start_time,'%Y-%m-%d')=DATE_FORMAT(NOW(),'%Y-%m-%d')
+	</select>
+</mapper>

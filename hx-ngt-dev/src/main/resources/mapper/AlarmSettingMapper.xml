@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.AlarmSettingRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.AlarmSetting" id="alarmSettingMap">
+        <result property="id" column="id"/>
+        <result property="equipment" column="equipment"/>
+        <result property="paramName" column="param_name"/>
+        <result property="alarmType" column="alarm_type"/>
+        <result property="settingValue" column="setting_value"/>
+        <result property="alarmGrade" column="alarm_grade"/>
+        <result property="alarmRing" column="alarm_ring"/>
+        <result property="smsNotify" column="sms_notify"/>
+        <result property="telphone" column="telphone"/>
+        <result property="measuretag" column="measuretag"/>
+        <result property="dataType" column="data_type"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+       
+    </resultMap>
+
+	<select id="getInfo" resultType="com.huaxing.bean.AlarmSetting">
+		select
+			 a.* ,
+			 equipment.name as  equipmentName,
+			 alarmType.name as  alarmTypeName
+		from ngt_alarm_setting a
+		INNER JOIN ngt_equipment equipment ON equipment.id = a.equipment
+		INNER JOIN ngt_alarm_type alarmType ON alarmType.tid = a.alarm_type  AND  alarmType.company_id=#{companyId}
+		where a.id = #{id}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.AlarmSetting">
+		select
+		 a.* ,
+		 equipment.name as  equipmentName,
+		 alarmType.name as  alarmTypeName
+		from ngt_alarm_setting a
+		INNER JOIN ngt_equipment equipment ON equipment.id = a.equipment
+		INNER JOIN ngt_alarm_type alarmType ON alarmType.tid = a.alarm_type AND  alarmType.company_id=#{companyId}
+        where  a.company_id =#{companyId}
+		<if test="equipment != null and equipment != ''">
+			AND a.equipment = #{equipment}
+		</if>
+	</select>
+	
+	<select id="queryEquParamName" resultType="com.huaxing.bean.AlarmSetting" >
+		SELECT
+			a.param_name paramName,
+			a.measuretag measuretag,
+			a.param_source dataType
+		FROM
+			ngt_equipmentparam_config a
+		WHERE
+	 	   acquisitioncard_channel =
+			(SELECT
+				b.id
+			FROM
+				ngt_acquisitioncard_channel b
+			WHERE 
+				b.company_id=#{companyId}
+				and b.equipment = #{equipment}
+			)
+			order by a.param_name asc
+	</select>
+	
+		<insert id="saveBatch">
+		INSERT INTO ngt_alarm_setting (
+				id ,
+				equipment ,
+				param_name ,
+				alarm_type,
+				setting_value ,
+				alarm_grade,
+				alarm_ring ,
+				sms_notify,
+				telphone,
+				measuretag,
+				data_type,
+				company_id ,
+				create_by,
+				create_date,
+				update_by,
+				update_date,
+				remarks ,
+				enable_flag)
+	VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		 (
+			#{item.id},
+			#{item.equipment},
+			#{item.paramName},
+			#{item.alarmType},
+			#{item.settingValue},
+			#{item.alarmGrade},
+			#{item.alarmRing},
+			#{item.smsNotify},
+			#{item.telphone},
+			#{item.measuretag},
+			#{item.dataType},
+			#{item.companyId},
+			#{item.createBy},
+			#{item.createDate},
+			#{item.updateBy},
+			#{item.updateDate},
+			#{item.remarks},
+			#{item.enableFlag}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.AlarmSetting">
+		update ngt_alarm_setting 
+		<set>
+			<if test="equipment != null">`equipment` = #{equipment}, </if>
+			<if test="paramName != null">`param_name` = #{paramName}, </if>
+			<if test="alarmType != null">`alarm_type` = #{alarmType}, </if>
+			<if test="settingValue != null">`setting_value` = #{settingValue}, </if>
+			<if test="alarmGrade != null">`alarm_grade` = #{alarmGrade}, </if>
+			<if test="alarmRing != null">`alarm_ring` = #{alarmRing}, </if>
+			<if test="smsNotify != null">`sms_notify` = #{smsNotify}, </if>
+			<if test="telphone != null">`telphone` = #{telphone}, </if>
+			<if test="measuretag != null">`measuretag` = #{measuretag}, </if>
+			<if test="dataType != null">`data_type` = #{dataType}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}</if>
+		</set>
+		where id = #{id}
+	</update>
+	<select id="isExists" resultType="int">
+		select count(*)
+		 from 
+		 ngt_alarm_setting a
+		 <where>
+			a.company_id =#{companyId}
+		    and	a.equipment  = #{equipment}
+			and a.measuretag = #{measuretag}
+			and a.alarm_type = #{alarmType}
+		 </where>
+	</select>
+	<delete id="delete">
+		delete from ngt_alarm_setting where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_alarm_setting where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<delete id="deleteBatchByEqu">
+		delete from ngt_alarm_setting where equipment in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<delete id="deleteByEquipment" parameterType="list">
+		DELETE FROM ngt_alarm_setting
+		WHERE equipment = #{equipment}
+		and company_id =#{companyId} 
+	</delete>
+</mapper>

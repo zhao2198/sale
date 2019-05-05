@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.NgtUserRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.NgtUser" id="ngtUserMap">
+        <result property="id" column="id"/>
+        <result property="companyId" column="company_id"/>
+        <result property="officeId" column="office_id"/>
+        <result property="loginName" column="login_name"/>
+        <result property="password" column="password"/>
+        <result property="no" column="no"/>
+        <result property="idCode" column="id_code"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="mobile" column="mobile"/>
+        <result property="userType" column="user_type"/>
+        <result property="photo" column="photo"/>
+        <result property="loginIp" column="login_ip"/>
+        <result property="loginDate" column="login_date"/>
+        <result property="loginFlag" column="login_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="qrcode" column="qrcode"/>
+        <result property="datasource" column="datasource"/>
+        <result property="sign" column="sign"/>
+        <result property="mallState" column="mall_state"/>
+        <result property="partnerState" column="partner_state"/>
+        <result property="projectState" column="project_state"/>
+        <result property="ngtOnlineState" column="ngt_online_state"/>
+        <result property="wechat" column="wechat"/>
+        <result property="address" column="address"/>
+        <result property="regionId" column="region_id"/>
+        <result property="ngtUserType" column="ngt_user_type"/>
+        <result property="sysTypes" column="sys_types"/>
+        <result property="trade" column="trade"/>
+        <result property="dearName" column="dear_name"/>
+        <result property="sex" column="sex"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.NgtUser">
+		select * from sys_user where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.NgtUser">
+		SELECT * FROM sys_user u 
+		WHERE u.`del_flag` = '0' 
+		AND office_id IS NOT NULL 
+		and u.company_id like concat(#{companyId}, '%')
+		and u.id != #{id}
+		<if test="loginName != null and loginName !=''"> and login_name = #{loginName} </if>
+		<if test="officeId != null and officeId !=''"> and office_id like concat(#{officeId}, '%') </if>
+		<if test="name != null and name !=''"> and name like concat('%', #{name}, '%')  </if>
+		ORDER BY u.`create_date`
+        
+	</select>
+	
+	<select id="queryListByRoleId" resultType="com.huaxing.bean.NgtUser">
+		SELECT * FROM sys_user u INNER JOIN sys_user_role ur ON u.`id` = ur.`user_id`
+		WHERE u.`del_flag` = '0' 
+		AND office_id IS NOT NULL 
+		
+		and u.company_id like concat(#{user.companyId}, '%')
+		and ur.role_id = #{roleId}
+		<if test="user.loginName != null"> and login_name = #{user.loginName} </if>
+		<if test="user.officeId != null"> and office_id like concat(#{user.officeId}, '%') </if>
+		<if test="user.name != null"> and name like concat('%', #{user.name}, '%')  </if>
+		ORDER BY u.`create_date`
+        
+	</select>
+	
+	<!-- 判断用户名是否重复-->
+	<select id="isExists" resultType="int"  parameterType="com.huaxing.bean.NgtUser">
+	      select count(*) from sys_user where login_name=#{loginName}
+	      
+	      <if test="id!=null and id!='' ">
+	         and  id != #{id}
+	      </if>
+	</select>
+	
+ 	
+	 
+	<insert id="save" parameterType="com.huaxing.bean.NgtUser">
+		insert into sys_user
+		(
+			`id`, 
+			`company_id`, 
+			`office_id`, 
+			`login_name`, 
+			`password`, 
+			`no`, 
+			`id_code`, 
+			`name`, 
+			`email`, 
+			`phone`, 
+			`mobile`, 
+			`user_type`, 
+			`photo`, 
+			`login_ip`, 
+			`login_date`, 
+			`login_flag`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`,  
+			`qrcode`, 
+			`datasource`, 
+			`sign`, 
+			`mall_state`, 
+			`partner_state`, 
+			`project_state`, 
+			`ngt_online_state`, 
+			`wechat`, 
+			`address`, 
+			`region_id`, 
+			`ngt_user_type`, 
+			`sys_types`, 
+			`trade`, 
+			`dear_name`, 
+			`sex`
+		)
+		values
+		(
+			#{id}, 
+			#{companyId}, 
+			#{officeId}, 
+			#{loginName}, 
+			#{password}, 
+			#{no}, 
+			#{idCode}, 
+			#{name}, 
+			#{email}, 
+			#{phone}, 
+			#{mobile}, 
+			#{userType}, 
+			#{photo}, 
+			#{loginIp}, 
+			#{loginDate}, 
+			#{loginFlag}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{qrcode}, 
+			#{datasource}, 
+			#{sign}, 
+			#{mallState}, 
+			#{partnerState}, 
+			#{projectState}, 
+			#{ngtOnlineState}, 
+			#{wechat}, 
+			#{address}, 
+			#{regionId}, 
+			#{ngtUserType}, 
+			#{sysTypes}, 
+			#{trade}, 
+			#{dearName}, 
+			#{sex}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.NgtUser">
+		update sys_user 
+		<set>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="officeId != null">`office_id` = #{officeId}, </if>
+			<if test="loginName != null">`login_name` = #{loginName}, </if>
+			<if test="password != null">`password` = #{password}, </if>
+			<if test="no != null">`no` = #{no}, </if>
+			<if test="idCode != null">`id_code` = #{idCode}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="email != null">`email` = #{email}, </if>
+			<if test="phone != null">`phone` = #{phone}, </if>
+			<if test="mobile != null">`mobile` = #{mobile}, </if>
+			<if test="userType != null">`user_type` = #{userType}, </if>
+			<if test="photo != null">`photo` = #{photo}, </if>
+			<if test="loginIp != null">`login_ip` = #{loginIp}, </if>
+			<if test="loginDate != null">`login_date` = #{loginDate}, </if>
+			<if test="loginFlag != null">`login_flag` = #{loginFlag}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="qrcode != null">`qrcode` = #{qrcode}, </if>
+			<if test="datasource != null">`datasource` = #{datasource}, </if>
+			<if test="sign != null">`sign` = #{sign}, </if>
+			<if test="mallState != null">`mall_state` = #{mallState}, </if>
+			<if test="partnerState != null">`partner_state` = #{partnerState}, </if>
+			<if test="projectState != null">`project_state` = #{projectState}, </if>
+			<if test="ngtOnlineState != null">`ngt_online_state` = #{ngtOnlineState}, </if>
+			<if test="wechat != null">`wechat` = #{wechat}, </if>
+			<if test="address != null">`address` = #{address}, </if>
+			<if test="regionId != null">`region_id` = #{regionId}, </if>
+			<if test="ngtUserType != null">`ngt_user_type` = #{ngtUserType}, </if>
+			<if test="sysTypes != null">`sys_types` = #{sysTypes}, </if>
+			<if test="trade != null">`trade` = #{trade}, </if>
+			<if test="dearName != null">`dear_name` = #{dearName}, </if>
+			<if test="sex != null">`sex` = #{sex}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updatePassword" parameterType="com.huaxing.bean.NgtUser">
+		update sys_user 
+		<set>
+			<if test="password != null">`password` = #{password} </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from sys_user where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from sys_user where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

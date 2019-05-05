@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.PatrolMissionContentRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.PatrolMissionContent" id="patrolMissionContentMap">
+        <result property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="equipmentId" column="equipment_id"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="state" column="state"/>
+        <result property="submitFlag" column="submit_flag"/>
+        <result property="enableFlag" column="enable_flag"/>
+        <result property="pid" column="pid"/>
+        <result property="confirmorName" column="confirmor_name"/>
+        <result property="confirmorPhone" column="confirmor_phone"/>
+        <result property="locationId" column="location_id"/>
+        <result property="locationName" column="location_name"/>
+        <result property="time" column="time"/>
+        <result property="content" column="content"/>
+        <result property="sort" column="sort"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.PatrolMissionContent">
+		select * from ngt_patrol_mission_content where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.PatrolMissionContent">
+		select * from ngt_patrol_mission_content
+       
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_patrol_mission_content 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.PatrolMission">
+		insert into ngt_patrol_mission_content
+		(
+			`id`, 
+			`mission_id`, 
+			`equipment_id`, 
+			`state`, 
+			`submit_flag`, 
+			`enable_flag`, 
+			`location_id`, 
+			`location_name`, 
+			`sort`
+		)
+		values
+		<foreach collection="contentList" item="content" separator=",">
+		(
+			#{content.id}, 
+			#{id}, 
+			#{content.equipmentId}, 
+			#{state}, 
+			'0', 
+			'1', 
+			#{content.locationId}, 
+			#{content.locationName}, 
+			#{content.sort}
+		)
+		</foreach>
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.PatrolMissionContent">
+		update ngt_patrol_mission_content 
+		<set>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId}, </if>
+			<if test="startTime != null">`start_time` = #{startTime}, </if>
+			<if test="endTime != null">`end_time` = #{endTime}, </if>
+			<if test="confirmorName != null">`confirmor_name` = #{confirmorName}, </if>
+			<if test="confirmorPhone != null">`confirmor_phone` = #{confirmorPhone}, </if>
+			<if test="locationId != null">`location_id` = #{locationId}, </if>
+			<if test="locationName != null">`location_name` = #{locationName}, </if>
+			<if test="time != null">`time` = #{time}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_patrol_mission_content where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_patrol_mission_content where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

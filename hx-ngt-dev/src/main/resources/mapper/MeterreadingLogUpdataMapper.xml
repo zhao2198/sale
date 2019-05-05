@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MeterreadingLogUpdataRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MeterreadingLogUpdata" id="meterreadingLogUpdataMap">
+        <result property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="beforeValue" column="before_value"/>
+        <result property="afterValue" column="after_value"/>
+        <result property="beforeHandlerId" column="before_handler_id"/>
+        <result property="afterHandlerId" column="after_handler_id"/>
+        <result property="beforeCreateDate" column="before_create_date"/>
+        <result property="afterCreateDate" column="after_create_date"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.MeterreadingLogUpdata">
+		select * from ngt_meterreading_log_updata where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.MeterreadingLogUpdata">
+		select * from ngt_meterreading_log_updata
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_meterreading_log_updata 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MeterreadingLogUpdata">
+		insert into ngt_meterreading_log_updata
+		(
+			`id`, 
+			`mission_id`, 
+			`before_value`, 
+			`after_value`, 
+			`before_handler_id`, 
+			`after_handler_id`, 
+			`before_create_date`, 
+			`after_create_date`
+		)
+		values
+		(
+			#{id}, 
+			#{missionId}, 
+			#{beforeValue}, 
+			#{afterValue}, 
+			#{beforeHandlerId}, 
+			#{afterHandlerId}, 
+			#{beforeCreateDate}, 
+			#{afterCreateDate}
+		)
+	</insert>
+	 	 
+	<update id="update" parameterType="com.huaxing.bean.MeterreadingLogUpdata">
+		update ngt_meterreading_log_updata 
+		<set>
+			<if test="missionId != null">`mission_id` = #{missionId}, </if>
+			<if test="beforeValue != null">`before_value` = #{beforeValue}, </if>
+			<if test="afterValue != null">`after_value` = #{afterValue}, </if>
+			<if test="beforeHandlerId != null">`before_handler_id` = #{beforeHandlerId}, </if>
+			<if test="afterHandlerId != null">`after_handler_id` = #{afterHandlerId}, </if>
+			<if test="beforeCreateDate != null">`before_create_date` = #{beforeCreateDate}, </if>
+			<if test="afterCreateDate != null">`after_create_date` = #{afterCreateDate}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_meterreading_log_updata where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_meterreading_log_updata where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

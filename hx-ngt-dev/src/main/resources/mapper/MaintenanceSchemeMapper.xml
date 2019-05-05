@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.MaintenanceSchemeRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.MaintenanceScheme" id="maintenanceSchemeMap">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="enableFlag" column="enable_flag"/>
+        <result property="remarks" column="remarks"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="createBy" column="create_by"/>
+        <result property="state" column="state"/>
+        <result property="companyId" column="company_id"/>
+        <result property="startDate" column="start_date"/>
+        <result property="period" column="period"/>
+        <result property="hopeTime" column="hope_time"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="executionCount" column="execution_count"/>
+        <result property="taskId" column="task_id"/>
+    </resultMap>
+    
+    <resultMap type="com.huaxing.bean.MaintenanceScheme" id="detailMaintenanceSchemeMap" extends="maintenanceSchemeMap">
+    	<result property="handlerName" column="handler_name" />
+		<result property="createName" column="create_name" />
+    </resultMap>
+
+	<resultMap type="com.huaxing.bean.MaintenanceScheme" id="extendsMaintenanceSchemeMap" extends="maintenanceSchemeMap">
+		<result property="handlerName" column="handler_name" />
+		<collection property="contentList" ofType="com.huaxing.bean.MaintenanceSchemeContent">
+			<result property="id" column="content_id" />
+			<result property="sort" column="sort" />
+			<result property="equipmentId" column="equipment_id" />
+			<result property="equipmentName" column="equipment_name" />
+			<result property="checkPoint" column="check_point" />
+			<result property="checkItem" column="check_item" />
+			<result property="keyPoint" column="key_point" />
+			<result property="checkStandard" column="check_standard" />
+		</collection>
+	</resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.MaintenanceScheme">
+		select * from ngt_periodic_maintenance where id = #{value}
+	</select>
+
+	<select id="queryList" resultMap="detailMaintenanceSchemeMap">
+		select 
+			pm.id,
+             pm.code,
+             pm.execution_count,
+             pm.enable_flag,
+             pm.remarks,
+             pm.create_date,
+             pm.create_by,
+             pm.state,
+             pm.start_date,
+             pm.period,
+             pm.hope_time,
+             pm.handler_id,
+             pm.task_id, 
+		 	u.`name` AS create_name,
+		  	hu.`name` AS handler_name  from ngt_periodic_maintenance pm
+		 LEFT JOIN sys_user u ON u.`id` = pm.`create_by` 
+		  LEFT JOIN sys_user hu ON hu.`id` = pm.`handler_id` 
+		where pm.company_id like concat(#{companyId}, '%')
+		<if test="code != null and code != ''">and pm.code like concat('%', #{code}, '%') </if>
+		
+		<if test="state!=null and state!=''">and pm.state=#{state} </if>
+		<if test="startDate != null"><![CDATA[ AND pm.create_date >= #{startDate} ]]></if>
+			<if test="endDate != null"><![CDATA[ AND pm.create_date <= #{endDate} ]]></if>
+       
+	</select>
+	
+	<select id="getDetailById" resultMap="extendsMaintenanceSchemeMap">
+		SELECT 
+		  pm.*,
+		  content.id AS content_id,
+		  content.`check_item`,
+		  content.`check_point`,
+		  content.`check_standard`,
+		  content.`equipment_id`,
+		  content.`equipment_name`,
+		  content.`key_point`,
+		  content.`periodic_maintenance_id`,
+		  content.`pid`,
+		  content.`sort`,
+		 hu.`name` AS handler_name  
+		FROM
+		  ngt_periodic_maintenance pm 
+		  LEFT JOIN ngt_periodic_maintenance_content content ON pm.id = content.periodic_maintenance_id 
+		   LEFT JOIN sys_user hu ON hu.`id` = pm.`handler_id` 
+		WHERE pm.id = #{id} order by  content.`sort` 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.MaintenanceScheme">
+		insert into ngt_periodic_maintenance
+		(
+			`id`, 
+			`code`, 
+			`enable_flag`, 
+			`remarks`, 
+			`update_date`, 
+			`update_by`, 
+			`create_date`, 
+			`create_by`, 
+			`state`, 
+			`company_id`, 
+			`start_date`, 
+			`period`, 
+			`hope_time`, 
+			`handler_id`,
+			`task_id`
+		)
+		values
+		(
+			#{id}, 
+			#{code}, 
+			#{enableFlag}, 
+			#{remarks}, 
+			#{updateDate}, 
+			#{updateBy}, 
+			#{createDate}, 
+			#{createBy}, 
+			#{state}, 
+			#{companyId}, 
+			#{startDate}, 
+			#{period}, 
+			#{hopeTime}, 
+			#{handlerId},
+			#{taskId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.MaintenanceScheme">
+		update ngt_periodic_maintenance 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="startDate != null">`start_date` = #{startDate}, </if>
+			<if test="period != null">`period` = #{period}, </if>
+			<if test="hopeTime != null">`hope_time` = #{hopeTime}, </if>
+			<if test="handlerId != null">`handler_id` = #{handlerId},</if>
+			<if test="executionCount != null">`execution_count` = #{executionCount},</if>
+			<if test="taskId != null">`task_id` = #{taskId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_periodic_maintenance where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_periodic_maintenance where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

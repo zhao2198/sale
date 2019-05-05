@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EquipmentStockRecordRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.EquipmentStockRecord" id="EquipmentStockRecordMap">
+        <result property="id" column="id"/>
+        <result property="materiel" column="materiel"/>
+        <result property="code" column="code"/>
+        <result property="number" column="number"/>
+        <result property="desciption" column="desciption"/>
+        <result property="operation" column="operation"/>
+        <result property="useUser" column="use_user"/>
+        <result property="useTime" column="use_time"/>
+        <result property="companyId" column="company_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="enableFlag" column="enable_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.EquipmentStockRecord">
+		select 
+		a.*,
+		materiel.name as materielName
+		
+		from ngt_equipment_stockrecord a
+		left join ngt_equipment_house materiel on  materiel.id =a.materiel
+		
+		where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.EquipmentStockRecord">
+		select 
+		a.*,
+		materiel.name as materielName, 
+		u.name as useUserName
+		 from ngt_equipment_stockrecord a
+		left join ngt_equipment_house materiel on materiel.id =a.materiel
+		left join sys_user u on u.id = a.use_user
+       <where>
+       a.company_id=#{companyId}
+        	<if test="materiel != null and materiel != ''">
+				AND materiel.name LIKE concat('%',#{materiel},'%')
+			</if>
+			<if test="operation != null and operation != ''">
+				AND a.name =#{operation}
+			</if>
+			<if test="useUser != null and useUser != ''">
+				AND a.model = #{useUser}
+			</if>
+		
+			<if test="beginUsetime != null and endUsetime != null and beginUsetime != '' and endUsetime != ''">
+				AND DATE_FORMAT(a.use_time, '%Y-%m-%d')  BETWEEN DATE_FORMAT( #{beginUsetime}, '%Y-%m-%d')  AND DATE_FORMAT(#{endUsetime}, '%Y-%m-%d')
+			</if>
+       
+       </where>
+       
+       order by a.update_date desc
+	</select>
+	
+	 
+	<insert id="save" parameterType="com.huaxing.bean.EquipmentStockRecord">
+		insert into ngt_equipment_stockrecord
+		(
+			`id`, 
+			`materiel`, 
+			`code`, 
+			`number`, 
+			`desciption`, 
+			`operation`, 
+			`use_user`, 
+			`use_time`, 
+			`company_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`, 
+			`enable_flag` 
+			
+		)
+		values
+		(
+			#{id}, 
+			#{materiel}, 
+			#{code}, 
+			#{number}, 
+			#{desciption}, 
+			#{operation}, 
+			#{useUser}, 
+			#{useTime}, 
+			#{companyId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks}, 
+			#{enableFlag}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.EquipmentStockRecord">
+		update ngt_equipment_stockrecord 
+		<set>
+			<if test="materiel != null">`materiel` = #{materiel}, </if>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="number != null">`number` = #{number}, </if>
+			<if test="desciption != null">`desciption` = #{desciption}, </if>
+			<if test="operation != null">`operation` = #{operation}, </if>
+			<if test="useUser != null">`use_user` = #{useUser}, </if>
+			<if test="useTime != null">`use_time` = #{useTime}, </if>
+			<if test="companyId != null">`company_id` = #{companyId}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="createDate != null">`create_date` = #{createDate}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="enableFlag != null">`enable_flag` = #{enableFlag} </if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_equipment_stockrecord where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_equipment_stockrecord where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

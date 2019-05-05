@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaxing.repository.StatisticsRepository">
+	
+	
+	
+	
+	<!-- 修复单统计人员获取 -->
+	
+	<select id="queryRepairStaticPersons" resultType="com.huaxing.bean.StaticsRepairPerson">
+		
+		   
+		    SELECT u.`name` AS name,a.* FROM 
+		    (SELECT p.handler_id as id,p.type,p.repair_result as result,COUNT(*) AS total 
+		    FROM ngt_repair_form p  WHERE p.`company_id`=#{person.companyId}
+		     <if test="person.type != null and person.type!=''"> AND p.type=#{person.type}</if>
+		      <if test="person.repairResult != null and person.repairResult != ''"> AND p.repair_result=#{person.repairResult}</if>
+		      
+		      <if test="person.startDate != null and person.startDate != ''"><![CDATA[ AND p.create_date >= #{person.startDate}]]> </if>
+		      <if test="person.endDate != null and person.endDate != ''"> <![CDATA[ AND p.create_date <= #{person.endDate}]]> </if>
+		      <if test="person.handlerIds!=null">
+			AND p.handler_id IN
+			<foreach collection="person.handlerIds" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+			</foreach>
+			</if>
+		      GROUP BY  p.id,p.type,p.repair_result LIMIT  <![CDATA[#{page.startIndex}]]>, <![CDATA[#{page.pageSize}]]>) AS a
+			LEFT JOIN sys_user u ON a.id = u.`id`
+	</select>
+	
+	<select id="queryRepairStaticPersonsCount" resultType="Integer" >
+	
+	SELECT COUNT(*)
+		    FROM ngt_repair_form p  WHERE p.`company_id`=#{person.companyId}
+		    <if test="person.type != null and person.type!=''"> AND p.type=#{person.type}</if>
+		      <if test="person.repairResult != null and person.repairResult != ''"> AND p.repair_result=#{person.repairResult}</if>
+		      
+		      <if test="person.startDate != null and person.startDate != ''"><![CDATA[ AND p.create_date >= #{person.startDate}]]> </if>
+		      <if test="person.endDate != null and person.endDate != ''"> <![CDATA[ AND p.create_date <= #{person.endDate}]]> </if>
+		      <if test="person.handlerIds!=null">
+			AND p.handler_id IN
+			<foreach collection="person.handlerIds" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+			</foreach>
+			</if>
+		      GROUP BY  p.`handler_id`
+	</select>
+	
+	
+	<!-- 修复单按设备统计 -->
+	
+	<select id="queryRepairStaticEquiments" resultType="com.huaxing.bean.StaticsRepairPerson">
+		    SELECT p.equipment_name as name,p.repair_result as result,COUNT(*) AS total 
+		    FROM ngt_repair_form p  WHERE p.`company_id`=#{person.companyId}
+		     <if test="person.type != null and person.type!=''"> AND p.type=#{person.type}</if>
+		      <if test="person.repairResult != null and person.repairResult != ''"> AND p.repair_result=#{person.repairResult}</if>
+		      
+		      <if test="person.startDate != null and person.startDate != ''"><![CDATA[ AND p.create_date >= #{person.startDate}]]> </if>
+		      <if test="person.endDate != null and person.endDate != ''"> <![CDATA[ AND p.create_date <= #{person.endDate}]]> </if>
+		      <if test="person.equipmentNames!=null">
+			AND p.equipment_name IN 
+			<foreach collection="person.equipmentNames" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+			</foreach>
+		</if>
+		      GROUP BY  p.equipment_name,p.repair_result LIMIT  <![CDATA[#{page.startIndex}]]>, <![CDATA[#{page.pageSize}]]>
+			
+	</select>
+	
+	<select id="queryRepairStaticEquimentsCount" resultType="Integer" >
+	
+	SELECT COUNT(*)
+		    FROM ngt_repair_form p  WHERE p.company_id=#{person.companyId}
+		    <if test="person.type != null and person.type!=''"> AND p.type=#{person.type}</if>
+		      <if test="person.repairResult != null and person.repairResult != ''"> AND p.repair_result=#{person.repairResult}</if>
+		      
+		      <if test="person.startDate != null and person.startDate != ''"><![CDATA[ AND p.create_date >= #{person.startDate}]]> </if>
+		      <if test="person.endDate != null and person.endDate != ''"> <![CDATA[ AND p.create_date <= #{person.endDate}]]> </if>
+		     <if test="person.equipmentNames!=null">
+			AND p.equipment_name IN 
+			<foreach collection="person.equipmentNames" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+			</foreach>
+		</if>
+		      GROUP BY  p.equipment_name
+	</select>
+	
+	
+	<!-- 巡检统计人员获取 -->
+	
+	<select id="queryPatrolStaticPersons" resultType="com.huaxing.bean.StaticsPatrolPersion">
+		
+		   
+		    SELECT u.`name` AS handlerName,a.* FROM 
+		    (SELECT p.`handler_id`,p.`type`,COUNT(*) AS total 
+		    FROM ngt_patrol_mission p  WHERE p.`company_id`=#{person.companyId}
+		    AND p.`handler_id` IS NOT NULL
+		     <if test="person.patrolSchemeType != null and person.patrolSchemeType!=''"> AND p.type=#{person.patrolSchemeType}</if>
+		      <if test="person.state != null and person.state != ''"> AND p.state=#{person.state}</if>
+		      
+		      <if test="person.startDate != null and person.startDate != ''"><![CDATA[ AND p.create_date >= #{person.startDate}]]> </if>
+		      <if test="person.endDate != null and person.endDate != ''"> <![CDATA[ AND p.create_date <= #{person.endDate}]]> </if>
+		      GROUP BY  p.handler_id,p.type LIMIT  <![CDATA[#{page.startIndex}]]>, <![CDATA[#{page.pageSize}]]>) AS a
+			LEFT JOIN sys_user u ON a.handler_id = u.`id`
+	</select>
+	
+	<select id="queryPatrolStaticPersonsCount" resultType="Integer" >
+	
+	SELECT COUNT(*)
+		    FROM ngt_patrol_mission p  WHERE p.`company_id`=#{person.companyId}
+		     <if test="person.patrolSchemeType != null and person.patrolSchemeType!=''"> AND p.type=#{person.patrolSchemeType}</if>
+		      <if test="person.state != null and person.state != ''"> AND p.state=#{person.state}</if>
+		      
+		      <if test="person.startDate != null and person.startDate != ''"><![CDATA[ AND p.create_date >= #{person.startDate}]]> </if>
+		      <if test="person.endDate != null and person.endDate != ''"> <![CDATA[ AND p.create_date <= #{person.endDate}]]> </if>
+		      GROUP BY  p.handler_id
+	</select>
+	
+	<!--统计每天的巡检单数量  王晓超 2018年9月14日10:26:24  -->
+	<select id="getPatrolDataCount" resultType="com.huaxing.bean.StatisticsPatrolPerson">
+		SELECT COUNT(*) AS 'totalCount',type AS 'patrolSchemeType',DATE_FORMAT(create_date, '${dateFormatStr}') AS 'createDateStr'
+		    FROM ngt_patrol_mission   WHERE company_id=#{companyId}
+		     <if test="patrolSchemeType != null and patrolSchemeType!=''"> AND type=#{patrolSchemeType}</if>
+		      <if test="state != null and state != ''"> AND state=#{state}</if>
+		      <if test="startDate != null"><![CDATA[ AND create_date >= #{startDate}]]> </if>
+		      <if test="endDate != null"> <![CDATA[ AND create_date <= #{endDate}]]> </if>
+		      GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}'),type  
+	</select>
+	<!-- 修复单统计图表数据  王晓超 2018年9月14日15:17:03 -->
+	<select id="getDataCount" resultType="com.huaxing.bean.StatisticsRepairForm">
+		SELECT COUNT(*) AS 'totalCount',type ,DATE_FORMAT(create_date, '${dateFormatStr}') AS 'createDateStr'
+		    FROM ngt_repair_form   WHERE company_id=#{companyId}
+		    AND publish_flag = '1'
+		     <if test="type != null and type!=''"> AND type=#{type}</if>
+		      <if test="state != null and state != ''"> AND state=#{state}</if>
+		      <if test="repairResult != null and repairResult != ''"> AND repair_result=#{repairResult}</if>
+		      <if test="startDate != null"><![CDATA[ AND create_date >= #{startDate}]]> </if>
+		      <if test="endDate != null"> <![CDATA[ AND create_date <= #{endDate}]]> </if>
+		      GROUP BY DATE_FORMAT(create_date, '${dateFormatStr}'),repair_result
+	</select>
+</mapper>

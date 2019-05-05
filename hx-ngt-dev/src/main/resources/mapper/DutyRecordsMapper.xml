@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.DutyRecordsRepository">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.huaxing.bean.DutyRecords" id="dutyRecordsMap">
+        <result property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="code" column="code"/>
+        <result property="dutyContent" column="duty_content"/>
+        <result property="companyId" column="company_id"/>
+        <result property="signId" column="sign_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="remarks" column="remarks"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+	<select id="get" resultType="com.huaxing.bean.DutyRecords" parameterType="java.lang.String">
+		SELECT
+			record.id,
+			record.code,
+			record.`duty_content` AS "dutyContent",
+			u.name AS "userName",
+			record.`create_date` AS "createDate",
+			m.`start_time` AS "planSignTime",
+			signT.signIn_time AS "signInTime",
+			record.`remarks`
+			FROM ngt_duty_records record
+			LEFT JOIN sys_user u ON u.id=record.`create_by`
+			LEFT JOIN ngt_duty_mission m ON m.id=record.`mission_id`
+			LEFT JOIN ngt_duty_sign	signT ON signT.id=record.`sign_id`
+			where record.id = #{id}
+	</select>
+
+	<select id="queryList" resultType="com.huaxing.bean.DutyRecords">
+			SELECT
+			record.id, 
+			record.code,
+			record.`duty_content` AS "dutyContent",
+			u.name AS "userName",
+			record.`create_date` AS "createDate",
+			m.`start_time` AS "planSignTime",
+			signT.signIn_time AS "signInTime",
+			record.`remarks`
+			FROM ngt_duty_records record
+			LEFT JOIN sys_user u ON u.id=record.`create_by`
+			LEFT JOIN ngt_duty_mission m ON m.id=record.`mission_id`
+			LEFT JOIN ngt_duty_sign	signT ON signT.id=record.`sign_id`
+		 <where>
+        record.del_flag='0'
+		<if test="companyId!=null and companyId !=''">
+		and record.company_id=#{companyId}
+		</if>
+		<if test="code!=null and code !=''">
+		and record.code like concat('%',#{code},'%')
+		</if>
+		<if test="missionId!=null and missionId !=''">
+		and record.mission_id=#{missionId}
+		</if>
+		<if test="startTime != null" >
+		<![CDATA[ AND DATE_FORMAT(record.create_date,'%Y-%m-%d')>= DATE_FORMAT(#{startTime} ,'%Y-%m-%d')]]>
+		</if>
+		<if test="endTime != null">
+		<![CDATA[ AND DATE_FORMAT(record.create_date,'%Y-%m-%d')<= DATE_FORMAT(#{endTime} ,'%Y-%m-%d')]]>
+		</if>
+		<if test="userIdArr != null">
+			AND record.create_by in
+			<foreach item="id" collection="userIdArr" open="(" separator="," close=")">
+				#{id}
+			</foreach>
+		</if>
+       </where>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ngt_duty_records 
+	</select>
+	 
+	<insert id="save" parameterType="com.huaxing.bean.DutyRecords">
+		insert into ngt_duty_records
+		(
+			`id`, 
+			`mission_id`, 
+			`code`, 
+			`duty_content`, 
+			`company_id`, 
+			`sign_id`, 
+			`create_by`, 
+			`create_date`, 
+			`update_by`, 
+			`update_date`, 
+			`remarks`
+		)
+		values
+		(
+			#{id}, 
+			#{missionId}, 
+			#{code}, 
+			#{dutyContent}, 
+			#{companyId}, 
+			#{signId}, 
+			#{createBy}, 
+			#{createDate}, 
+			#{updateBy}, 
+			#{updateDate}, 
+			#{remarks} 
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.huaxing.bean.DutyRecords">
+		update ngt_duty_records 
+		<set>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="dutyContent != null">`duty_content` = #{dutyContent}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			<if test="updateDate != null">`update_date` = #{updateDate}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ngt_duty_records where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ngt_duty_records where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<!--模糊查询值班记录的编号，返回相似编号的集合  -->
+	<select id="getLikelyCodes" resultType="java.lang.String"> 
+		select code from ngt_duty_records 
+		<where>
+		del_flag='0'
+		<if test="companyId!=null and companyId!=''">
+		and company_id=#{companyId}
+		</if>
+		<if test="code!=null and code!=''">
+		and code like concat('%',#{code},'%')
+		</if>
+		</where> 
+	</select>
+
+</mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.huaxing.repository.EnergyRankRepository">
+	<!-- 获取公司下所有的类别  包括设备id王晓超  2018年7月20日14:58:41 -->
+	<select id="getCategoryList" resultType="com.huaxing.bean.EnergyRank">
+		SELECT
+			t.`name` AS 'name',
+			e.id AS 'equipment_id'
+		FROM
+			ngt_equipment_type t
+		LEFT JOIN ngt_equipment e ON e.category = t.id
+		WHERE
+			t.type = '4'
+		AND t.company_id = #{companyId}
+		AND t.parent_id != '0'
+		GROUP BY t.`name`,e.id
+	</select>
+	<!-- 获取能耗排名（类别、建筑、组织）原始数据  王晓超 2018年7月20日14:59:21 -->
+	<select id="getEnergyRankEcharDataList" resultType="com.huaxing.bean.EnergyRank">
+		SELECT
+			equipment_id,
+			SUM(total_electric_quantity) AS 'total_electric_quantity'
+		FROM
+			ngt_power_cost
+		WHERE
+			create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND company_id = #{companyId}
+		AND data_type = #{dataType}
+		GROUP BY
+			equipment_id
+	</select>
+	<!-- 查询类别能耗排名列表  王晓超 2018年7月23日14:14:27 -->
+	<select id="getEnergyRankList" resultType="com.huaxing.bean.EnergyRank">
+		SELECT
+			equipment_id,
+			SUM(sharp_electric_quantity) AS 'sharp_electric_quantity',
+			SUM(peak_electric_quantity) AS 'peak_electric_quantity',
+			SUM(flat_electric_quantity) AS 'flat_electric_quantity',
+			SUM(valley_electric_quantity) AS 'valley_electric_quantity',
+			SUM(total_electric_quantity) AS 'total_electric_quantity'
+		FROM
+			ngt_power_cost
+		WHERE
+			create_date BETWEEN #{startDate}
+		AND #{endDate}
+		AND company_id = #{companyId}
+		AND data_type = #{dataType}
+		GROUP BY
+			equipment_id
+	</select>
+	
+	<!-- 获取公司下所有的组织（部门） 王晓超2018年7月23日17:11:35  --><!-- 此sql中去掉了一个tpye=2的条件，为了解决在没有部门或部门下无设备的情况下echart图能显示公司数据 -->
+	<select id="getDepartmentList" resultType="com.huaxing.bean.EnergyRank">
+		SELECT
+			e.`name` AS 'name',
+			t.id AS 'equipment_id'
+		FROM
+			sys_office e
+		INNER JOIN ngt_equipment t ON t.organization = e.id
+		WHERE
+			e.company_id = #{companyId}
+	
+		GROUP BY
+			e.`name`,
+			t.id
+	</select>
+	<!-- 获取公司下所有的建筑  王晓超 2018年7月24日09:47:20 -->
+	<select id="getBuildingList" resultType="com.huaxing.bean.EnergyRank">
+		SELECT
+			t.`name` AS 'name',
+			e.id AS 'equipment_id'
+		FROM
+			ngt_equipment_type t
+		LEFT JOIN ngt_equipment e ON e.building = t.id
+		WHERE
+			t.type = '1'
+		AND t.company_id = #{companyId}
+		AND t.parent_id != '0'
+		GROUP BY
+			t.`name`,
+			e.id
+	</select>
+</mapper>
